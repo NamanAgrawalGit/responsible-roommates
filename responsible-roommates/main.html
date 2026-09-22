@@ -1,0 +1,100 @@
+<!--
+Name: Naman Agrawal
+About this app/page: This app is called Responsible Roommates and is intended to assist roommates
+in managing shared expenses and chores. The Main page allows users to manage roommates and split
+expenses, while the Chores page allows users to create and complete chores. The History page keeps
+track of past actions and allows users to delete individual entries or clear all data.
+-->
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="main.css" rel="stylesheet">
+        <script src="main.js" defer></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=PT+Serif+Caption:ital@0;1&display=swap"
+            rel="stylesheet"
+        >
+        <title>Responsible Roommate Main Page</title>
+    </head>
+
+    <body>
+        <header>
+            <div id="logo">
+                <h1>Responsible Roommates</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li> <a href="main.html" class="active">Main</a></li>
+                    <li><a href="help.html">Help</a></li>
+                    <li><a href="history.html">History</a></li>
+                    <li><a href="chores.html">Chores</a></li>
+                </ul>
+            </nav>
+        </header>
+        <main class="main-page">
+            <section class="roommates">
+                <div class="display-roommates">
+                    <div class="room-head">
+                        <h2 id="myroom">My Room</h2>
+                        <div id="roommate-count">
+                            <!--Attribution: "Group Glyph Icon" by Sentya Irma,
+                             sourced from Canva, licensed under Canva Content License-->
+                            <img src="images/ppl.png" alt=" ">
+                            <h3>0 Roommates</h3>
+                        </div>
+                    </div>
+
+                    <div id="roommate-list"></div>
+                </div>
+                <div class="add-roommate">
+                    <label for="roommates-name" id="roommate-label">Roommate name:</label>
+                    <input type="text" id="roommates-name" placeholder="ex: Naman">
+                    <button id="add-roommate-btn">Add Roommate</button>
+                </div>
+                <div id="roommate-error"></div>
+            </section>
+
+            <section class="split-expense">
+                <div id="expense-outcomes">
+                    <h2>Expenses Summary</h2>
+                    <div id="expense-list"></div>
+                </div>
+                <button id="split-expense-expand">+ Split an Expense</button>
+                <div id="split-expense-form">
+                    <div>
+                        <h3>Expense Item</h3>
+                        <label for="item">Expense item:</label>
+                        <input type="text" id="item" placeholder="ex: Groceries">
+                    </div>
+                    <div>
+                        <h3>Dollar Amount</h3>
+                        <label for="amount">Dollar amount:</label>
+                        <input type="number" id="amount" step="0.01" placeholder="$0.00" min="0.00">
+                    </div>
+                    <div>
+                        <h3>Split Between</h3>
+                        <input type="checkbox" id="select-all" checked>
+                        <label for="select-all">Select All</label>
+                        <div id="split-checkboxes"></div>
+                    </div>
+                    <button id="split-cost-btn">Add Expense</button>
+                    <div id="expense-error"></div>
+                </div>
+            </section>
+            <section class="chores">
+                <h2>My Chores</h2>
+                <div id="chore-list">
+                    <p>No chores added</p>
+                </div>
+                <a href="chores.html" id="add-chore-btn">Add Chore</a>
+                <div id="add-chore-form"></div>
+            </section>
+        </main>
+        <footer id="attributions">
+            Portions of this page © 2026 Naman Agrawal, other attributions cited in page source
+        </footer>
+    </body>
+</html>
