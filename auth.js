@@ -9,7 +9,7 @@ window.onload = async function () {
         data: { session },
     } = await supabaseClient.auth.getSession();
     if (session) {
-        window.location.href = "index.html";
+        window.location.href = "room-select.html";
         return;
     }
 
@@ -90,7 +90,7 @@ window.onload = async function () {
                 return;
             }
 
-            window.location.href = "index.html";
+            window.location.href = "room-select.html";
         } else {
             const { error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
@@ -104,7 +104,7 @@ window.onload = async function () {
                 return;
             }
 
-            window.location.href = "index.html";
+            window.location.href = "room-select.html";
         }
     });
 
@@ -112,7 +112,7 @@ window.onload = async function () {
         await supabaseClient.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: window.location.origin + window.location.pathname.replace("auth.html", "index.html"),
+                redirectTo: window.location.origin + window.location.pathname.replace("auth.html", "room-select.html"),
             },
         });
     });

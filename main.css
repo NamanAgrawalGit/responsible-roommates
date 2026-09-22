@@ -525,3 +525,101 @@ input {
 #logout-btn {
     background-color: #ff4d4f;
 }
+
+#current-room-label {
+    color: #0c3b2e;
+    font-weight: bold;
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ---------- Room select page ---------- */
+
+.room-select {
+    max-width: 700px;
+    background-color: #fffdd0;
+    border-radius: 30px;
+    padding: 25px;
+    margin: 30px auto;
+    color: #0c3b2e;
+}
+
+.room-select h2 {
+    text-align: center;
+    margin-top: 0;
+}
+
+.room-entry {
+    background-color: white;
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.room-entry h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.room-entry button {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+.room-select-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.room-panel {
+    background-color: white;
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-panel h3 {
+    margin-top: 0;
+}
+
+.room-panel label {
+    font-weight: bold;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.room-panel input {
+    margin-bottom: 4px;
+}
+
+.room-panel button {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+#create-room-error,
+#join-room-error {
+    color: #ff4d4f;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    .room-select-panels {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,73 @@
+<!--
+Name: Naman Agrawal
+This page lets a logged-in user pick which room to enter, create a new
+room, or join an existing one using an invite code.
+-->
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="main.css" rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=PT+Serif+Caption:ital@0;1&display=swap"
+            rel="stylesheet"
+        >
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+        <script src="supabaseClient.js" defer></script>
+        <script src="authGuard.js" defer></script>
+        <script src="room-select.js" defer></script>
+
+        <title>Responsible Roommates - Choose a Room</title>
+    </head>
+
+    <body>
+        <header>
+            <div id="logo">
+                <h1>Responsible Roommates</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" id="logout-btn">Log Out</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="room-select">
+                <h2>Your Rooms</h2>
+                <div id="room-list">
+                    <p>Loading your rooms...</p>
+                </div>
+
+                <div class="room-select-panels">
+                    <div class="room-panel">
+                        <h3>Create a Room</h3>
+                        <label for="create-room-name">Room name:</label>
+                        <input type="text" id="create-room-name" placeholder="ex: McCarty Apartment">
+                        <label for="create-room-address">Address (optional):</label>
+                        <input type="text" id="create-room-address" placeholder="optional">
+                        <label for="create-room-movein">Move-in date (optional):</label>
+                        <input type="date" id="create-room-movein">
+                        <button id="create-room-btn">Create Room</button>
+                        <div id="create-room-error"></div>
+                    </div>
+
+                    <div class="room-panel">
+                        <h3>Join a Room</h3>
+                        <label for="join-room-code">Room code:</label>
+                        <input type="text" id="join-room-code" placeholder="ex: A1B2C3">
+                        <button id="join-room-btn">Join Room</button>
+                        <div id="join-room-error"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer id="attributions">
+            Portions of this page © 2026 Naman Agrawal, other attributions cited in page source
+        </footer>
+    </body>
+</html>
