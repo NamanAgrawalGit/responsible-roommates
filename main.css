@@ -444,3 +444,84 @@ input {
     margin-bottom: 8px;
     line-height: 1.5;
 }
+
+/* ---------- Auth page ---------- */
+
+.auth-box {
+    max-width: 400px;
+    background-color: #fffdd0;
+    border-radius: 30px;
+    padding: 25px;
+    margin: 40px auto;
+    color: #0c3b2e;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.auth-box label {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+.auth-box input {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+#auth-name-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box button {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    font-size: 15px;
+    margin-top: 12px;
+    cursor: pointer;
+}
+
+#auth-error {
+    color: #ff4d4f;
+    font-weight: bold;
+}
+
+#auth-toggle-text {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#auth-toggle-text a {
+    color: #0c3b2e;
+    font-weight: bold;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.oauth-btn {
+    background-color: white;
+    color: #0c3b2e;
+    border: 2px solid #0c3b2e;
+}
+
+/* ---------- Shared logout button ---------- */
+
+#logout-btn {
+    background-color: #ff4d4f;
+}

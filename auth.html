@@ -1,0 +1,65 @@
+<!--
+Name: Naman Agrawal
+This page handles account creation and login for Responsible Roommates.
+-->
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="main.css" rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=PT+Serif+Caption:ital@0;1&display=swap"
+            rel="stylesheet"
+        >
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+        <script src="supabaseClient.js" defer></script>
+        <script src="auth.js" defer></script>
+
+        <title>Responsible Roommates - Log In</title>
+    </head>
+
+    <body>
+        <header>
+            <div id="logo">
+                <h1>Responsible Roommates</h1>
+            </div>
+        </header>
+
+        <main>
+            <section class="auth-box">
+                <h2 id="auth-heading">Log In</h2>
+
+                <div id="auth-name-field">
+                    <label for="auth-name">Your name:</label>
+                    <input type="text" id="auth-name" placeholder="ex: Naman">
+                </div>
+
+                <label for="auth-email">Email:</label>
+                <input type="email" id="auth-email" placeholder="you@example.com">
+
+                <label for="auth-password">Password:</label>
+                <input type="password" id="auth-password" placeholder="At least 6 characters">
+
+                <button id="auth-submit-btn">Log In</button>
+
+                <div id="auth-error"></div>
+
+                <p id="auth-toggle-text">
+                    <span id="auth-toggle-question">Don't have an account?</span>
+                    <a href="#" id="auth-toggle-link">Sign up</a>
+                </p>
+
+                <div class="auth-divider">or</div>
+
+                <button id="google-auth-btn" class="oauth-btn">Continue with Google</button>
+            </section>
+        </main>
+
+        <footer id="attributions">
+            Portions of this page © 2026 Naman Agrawal, other attributions cited in page source
+        </footer>
+    </body>
+</html>
