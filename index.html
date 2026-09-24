@@ -55,13 +55,8 @@ track of past actions and allows users to delete individual entries or clear all
                     </div>
 
                     <div id="roommate-list"></div>
+                    <div id="invite-info"></div>
                 </div>
-                <div class="add-roommate">
-                    <label for="roommates-name" id="roommate-label">Roommate name:</label>
-                    <input type="text" id="roommates-name" placeholder="ex: Naman">
-                    <button id="add-roommate-btn">Add Roommate</button>
-                </div>
-                <div id="roommate-error"></div>
             </section>
 
             <section class="split-expense">
@@ -71,6 +66,11 @@ track of past actions and allows users to delete individual entries or clear all
                 </div>
                 <button id="split-expense-expand">+ Split an Expense</button>
                 <div id="split-expense-form">
+                    <div>
+                        <h3>Paid By</h3>
+                        <label for="paid-by">Paid by:</label>
+                        <select id="paid-by"></select>
+                    </div>
                     <div>
                         <h3>Expense Item</h3>
                         <label for="item">Expense item:</label>

@@ -131,6 +131,19 @@ header ul {
     margin: 0px;
 }
 
+#invite-info {
+    color: #0c3b2e;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
+#invite-info strong {
+    background-color: white;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
 .add-roommate {
     display: flex;
     gap: 8px;

@@ -1,148 +1,167 @@
 /*
 Name: Naman Agrawal
-This is chores.js which handles logic and the backend math behind the Responsible Roommates app chores page.
+This is chores.js. It loads the current room's members and open chores
+from Supabase, and handles creating and completing chores.
+Replaces the old localStorage-based version.
 */
-window.onload = function () {
-    let expandChoreBtn = document.getElementById("expand-chore-btn");
-    let choreForm = document.getElementById("chore-form");
-    let roommates = JSON.parse(localStorage.getItem("roommates")) || [];
-    let chores = JSON.parse(localStorage.getItem("chores")) || [];
-    let history = JSON.parse(localStorage.getItem("history")) || [];
-    let splitChores = document.getElementById("split-chores");
-    let selectAllChores = document.getElementById("select-all");
-    let splitChoreBtn = document.getElementById("split-chore-btn");
-    splitChores.innerHTML = "";
-    showChores(chores);
+window.onload = async function () {
+    const currentRoomId = localStorage.getItem("currentRoomId");
+    const {
+        data: { user },
+    } = await supabaseClient.auth.getUser();
 
-    for (let i = 0; i < roommates.length; i++) {
-        splitChores.innerHTML +=
-            '<label><input type="checkbox" class="chore-checkbox" value="' +
-            roommates[i] +
-            '" checked> ' +
-            roommates[i] +
-            "</label><br>";
-    }
+    let membersById = {};
 
-    expandChoreBtn.onclick = function () {
-        if (choreForm.style.display === "none") {
-            choreForm.style.display = "block";
-            expandChoreBtn.innerHTML = "- Add Chore";
-        } else {
-            choreForm.style.display = "none";
-            expandChoreBtn.innerHTML = "+ Add Chore";
-        }
-    };
+    const expandChoreBtn = document.getElementById("expand-chore-btn");
+    const choreForm = document.getElementById("chore-form");
+    const assignSelect = document.getElementById("assign-to");
+    const splitChoreBtn = document.getElementById("split-chore-btn");
+    const choreErrorDiv = document.getElementById("chore-error");
+    const choreListDiv = document.getElementById("chore-list");
 
-    selectAllChores.onchange = function () {
-        let boxes = document.getElementsByClassName("chore-checkbox");
+    let choreFormOpen = false;
+    expandChoreBtn.addEventListener("click", function () {
+        choreFormOpen = !choreFormOpen;
+        choreForm.style.display = choreFormOpen ? "block" : "none";
+        expandChoreBtn.innerHTML = choreFormOpen ? "- Add Chore" : "+ Add Chore";
+    });
 
-        for (let i = 0; i < boxes.length; i++) {
-            boxes[i].checked = selectAllChores.checked;
-        }
-    };
+    async function loadMembers() {
+        const { data, error } = await supabaseClient
+            .from("room_members")
+            .select("user_id, profiles(name)")
+            .eq("room_id", currentRoomId)
+            .eq("is_active", true);
 
-    splitChoreBtn.onclick = function () {
-        let choreName = document.getElementById("task").value;
-        let dueDate = document.getElementById("deadline").value;
-        let selectedRoommates = [];
-        let boxes = document.getElementsByClassName("chore-checkbox");
-
-        for (let i = 0; i < boxes.length; i++) {
-            if (boxes[i].checked) {
-                selectedRoommates.push(boxes[i].value);
-            }
-        }
-
-        if (choreName === "" || dueDate === "" || selectedRoommates.length === 0) {
-            document.getElementById("chore-error").innerHTML =
-                "<p>You need a chore name, due date, and at least one roommate.</p>";
+        if (error || !data) {
             return;
         }
 
-        document.getElementById("chore-error").innerHTML = "";
+        assignSelect.innerHTML = "";
+        for (let i = 0; i < data.length; i++) {
+            const name = data[i].profiles ? data[i].profiles.name : "Unknown";
+            membersById[data[i].user_id] = name;
+            assignSelect.innerHTML += "<option value='" + data[i].user_id + "'>" + name + "</option>";
+        }
+    }
 
-        chores.push({
-            id: Date.now(),
-            name: choreName,
-            person: selectedRoommates,
-            dueDate: dueDate,
+    async function loadChores() {
+        const { data, error } = await supabaseClient
+            .from("chores")
+            .select("id, name, assigned_to, due_date")
+            .eq("room_id", currentRoomId)
+            .eq("status", "open")
+            .order("due_date", { ascending: true });
+
+        if (error) {
+            choreListDiv.innerHTML = "<p>Something went wrong loading chores. Try refreshing.</p>";
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            choreListDiv.innerHTML = "<p>No chores added</p>";
+            return;
+        }
+
+        choreListDiv.innerHTML = "";
+        for (let i = 0; i < data.length; i++) {
+            const chore = data[i];
+            choreListDiv.innerHTML +=
+                "<div class='chore-entry'>" +
+                "<h3>" +
+                chore.name +
+                "</h3>" +
+                "<p>Assigned to: " +
+                (membersById[chore.assigned_to] || "Unassigned") +
+                "</p>" +
+                "<p>Due: " +
+                (chore.due_date || "No due date") +
+                "</p>" +
+                "<button class='complete-chore-btn' data-id='" +
+                chore.id +
+                "'>Complete</button>" +
+                "</div>";
+        }
+
+        const completeButtons = document.getElementsByClassName("complete-chore-btn");
+        for (let i = 0; i < completeButtons.length; i++) {
+            completeButtons[i].addEventListener("click", async function () {
+                const id = this.getAttribute("data-id");
+
+                await supabaseClient
+                    .from("chores")
+                    .update({
+                        status: "completed",
+                        completed_at: new Date().toISOString(),
+                        completed_by: user.id,
+                    })
+                    .eq("id", id);
+
+                await supabaseClient.from("history").insert({
+                    room_id: currentRoomId,
+                    actor_id: user.id,
+                    action: "chore_completed",
+                    details: "Chore marked complete",
+                    related_type: "chore",
+                    related_id: id,
+                });
+
+                loadChores();
+            });
+        }
+    }
+
+    splitChoreBtn.addEventListener("click", async function () {
+        const choreName = document.getElementById("task").value.trim();
+        const dueDate = document.getElementById("deadline").value;
+        const assignedTo = assignSelect.value;
+
+        choreErrorDiv.innerHTML = "";
+
+        if (choreName === "" || dueDate === "" || !assignedTo) {
+            choreErrorDiv.innerHTML = "<p>You need a chore name, due date, and an assigned roommate.</p>";
+            return;
+        }
+
+        splitChoreBtn.disabled = true;
+
+        const { data, error } = await supabaseClient
+            .from("chores")
+            .insert({
+                room_id: currentRoomId,
+                name: choreName,
+                assigned_to: assignedTo,
+                due_date: dueDate,
+                created_by: user.id,
+            })
+            .select()
+            .single();
+
+        splitChoreBtn.disabled = false;
+
+        if (error) {
+            choreErrorDiv.innerHTML = "<p>" + error.message + "</p>";
+            return;
+        }
+
+        await supabaseClient.from("history").insert({
+            room_id: currentRoomId,
+            actor_id: user.id,
+            action: "chore_added",
+            details: choreName + " - Assigned to " + (membersById[assignedTo] || "Unknown"),
+            related_type: "chore",
+            related_id: data.id,
         });
-
-        localStorage.setItem("chores", JSON.stringify(chores));
-
-        history.push({
-            action: "Added chore",
-            details: choreName + " - Assigned to " + selectedRoommates.join(", "),
-            type: "chore",
-            id: chores[chores.length - 1].id,
-        });
-
-        localStorage.setItem("history", JSON.stringify(history));
-
-        showChores(chores);
 
         document.getElementById("task").value = "";
         document.getElementById("deadline").value = "";
-
-        selectAllChores.checked = true;
-
-        boxes = document.getElementsByClassName("chore-checkbox");
-
-        for (let i = 0; i < boxes.length; i++) {
-            boxes[i].checked = true;
-        }
-
         choreForm.style.display = "none";
-    };
+        choreFormOpen = false;
+        expandChoreBtn.innerHTML = "+ Add Chore";
+
+        loadChores();
+    });
+
+    await loadMembers();
+    await loadChores();
 };
-
-function showChores(chores) {
-    let choreList = document.getElementById("chore-list");
-
-    if (chores.length === 0) {
-        choreList.innerHTML = "<p>No chores added</p>";
-        return;
-    }
-
-    choreList.innerHTML = "";
-
-    for (let i = 0; i < chores.length; i++) {
-        let chore = chores[i];
-
-        choreList.innerHTML +=
-            "<div class='chore-entry'>" +
-            "<h3>" +
-            chore.name +
-            "</h3>" +
-            "<p>Assigned to: " +
-            chore.person.join(", ") +
-            "</p>" +
-            "<p>Due: " +
-            chore.dueDate +
-            "</p>" +
-            "<button class='complete-chore-btn' data-id='" +
-            chore.id +
-            "'>Complete</button>" +
-            "</div>";
-    }
-
-    let completeButtons = document.getElementsByClassName("complete-chore-btn");
-
-    for (let i = 0; i < completeButtons.length; i++) {
-        completeButtons[i].onclick = function () {
-            let id = parseInt(this.getAttribute("data-id"));
-
-            for (let j = 0; j < chores.length; j++) {
-                if (chores[j].id === id) {
-                    chores.splice(j, 1);
-                    break;
-                }
-            }
-
-            localStorage.setItem("chores", JSON.stringify(chores));
-
-            showChores(chores);
-        };
-    }
-    return chores;
-}
