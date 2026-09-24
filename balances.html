@@ -1,6 +1,7 @@
 <!--
 Name: Naman Agrawal
-This page allows roommates to create and manage chores.
+This page shows the current user's balances within the room: what they
+owe other roommates, and what other roommates owe them.
 -->
 <!doctype html>
 <html lang="en">
@@ -9,21 +10,17 @@ This page allows roommates to create and manage chores.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <link href="main.css" rel="stylesheet">
-
         <link
             href="https://fonts.googleapis.com/css2?family=PT+Serif+Caption:ital@0;1&display=swap"
             rel="stylesheet"
         >
-
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
-        <script src="chores.js" defer></script>
-
-        <title>Responsible Roommates - Chores</title>
+        <script src="balances.js" defer></script>
+        <title>Responsible Roommates - Balances</title>
     </head>
-
     <body>
         <header>
             <div id="logo">
@@ -33,10 +30,10 @@ This page allows roommates to create and manage chores.
             <nav>
                 <ul>
                     <li><a href="index.html">Main</a></li>
-                    <li><a href="balances.html">Balances</a></li>
+                    <li><a href="balances.html" class="active">Balances</a></li>
                     <li><a href="help.html">Help</a></li>
                     <li><a href="history.html">History</a></li>
-                    <li><a href="chores.html" class="active">Chores</a></li>
+                    <li><a href="chores.html">Chores</a></li>
                     <li><a href="#" id="switch-room-btn">Switch Room</a></li>
                     <li><a href="#" id="logout-btn">Log Out</a></li>
                 </ul>
@@ -44,33 +41,28 @@ This page allows roommates to create and manage chores.
         </header>
 
         <main>
-            <section class="chores">
-                <h2>My Chores</h2>
+            <section class="balances">
+                <h2>Your Balances</h2>
 
-                <div id="chore-list">
-                    <p>No chores added</p>
+                <div id="balance-summary">
+                    <p>Loading balances...</p>
                 </div>
 
-                <button id="expand-chore-btn">+ Add Chore</button>
-                <div id="chore-form">
-                    <div>
-                        <h3>Name of Chore</h3>
-                        <label for="task">Chore name:</label>
-                        <input type="text" id="task" placeholder="ex: Vacuuming">
+                <div class="balance-columns">
+                    <div class="balance-column">
+                        <h3>You Owe</h3>
+                        <div id="you-owe-list"></div>
                     </div>
-                    <div>
-                        <h3>Due Date</h3>
-                        <label for="deadline">Due date:</label>
-                        <input type="date" id="deadline">
+                    <div class="balance-column">
+                        <h3>Owed to You</h3>
+                        <div id="owed-to-you-list"></div>
                     </div>
-                    <div>
-                        <h3>Assign to</h3>
-                        <label for="assign-to">Assign to:</label>
-                        <select id="assign-to"></select>
-                    </div>
-                    <button id="split-chore-btn">Add Chore</button>
-                    <div id="chore-error"></div>
                 </div>
+
+                <p class="balance-note">
+                    Balances only reflect unpaid expense splits. Once payment tracking is
+                    added, marking something as paid will update these numbers.
+                </p>
             </section>
         </main>
 
