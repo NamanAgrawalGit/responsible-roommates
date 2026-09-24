@@ -24,6 +24,7 @@ window.onload = async function () {
     const splitCostBtn = document.getElementById("split-cost-btn");
     const expenseErrorDiv = document.getElementById("expense-error");
     const expenseListDiv = document.getElementById("expense-list");
+    const balanceSummaryMiniDiv = document.getElementById("balance-summary-mini");
     const choreListDiv = document.getElementById("chore-list");
 
     // Expand/close the split-expense area. (Uses a plain flag instead of
@@ -111,6 +112,49 @@ window.onload = async function () {
         } else {
             inviteInfo.innerHTML = "";
         }
+    }
+
+    async function loadBalanceSummary() {
+        const { data, error } = await supabaseClient
+            .from("expenses")
+            .select("paid_by, expense_splits(user_id, amount_owed, payment_status)")
+            .eq("room_id", currentRoomId);
+
+        if (error) {
+            balanceSummaryMiniDiv.innerHTML = "<p>Could not load balance.</p>";
+            return;
+        }
+
+        let totalOwed = 0;
+        let totalOwedToYou = 0;
+
+        for (let i = 0; i < data.length; i++) {
+            const expense = data[i];
+            for (let j = 0; j < expense.expense_splits.length; j++) {
+                const split = expense.expense_splits[j];
+
+                if (split.payment_status === "paid" || split.user_id === expense.paid_by) {
+                    continue;
+                }
+
+                const amount = Number(split.amount_owed);
+
+                if (split.user_id === user.id) {
+                    totalOwed += amount;
+                } else if (expense.paid_by === user.id) {
+                    totalOwedToYou += amount;
+                }
+            }
+        }
+
+        balanceSummaryMiniDiv.innerHTML =
+            "<div class='mini-balance-row'><span>You owe</span><span>$" +
+            totalOwed.toFixed(2) +
+            "</span></div>" +
+            "<div class='mini-balance-row'><span>Owed to you</span><span>$" +
+            totalOwedToYou.toFixed(2) +
+            "</span></div>" +
+            "<a href='balances.html' class='balance-link'>View full balances &rarr;</a>";
     }
 
     async function loadExpenses() {
@@ -264,9 +308,11 @@ window.onload = async function () {
         splitExpenseExpand.innerHTML = "+ Split an Expense";
 
         loadExpenses();
+        loadBalanceSummary();
     });
 
     await loadMembers();
+    await loadBalanceSummary();
     await loadExpenses();
     await loadChoresPreview();
 };

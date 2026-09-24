@@ -274,6 +274,30 @@ input {
     text-align: center;
 }
 
+#balance-summary-mini {
+    background-color: white;
+    border-radius: 20px;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    color: #0c3b2e;
+}
+
+.mini-balance-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    padding: 4px 0;
+}
+
+.balance-link {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    color: #0c3b2e;
+    font-weight: bold;
+    text-decoration: none;
+}
+
 #split-expense-form {
     display: none;
     color: #0c3b2e;
