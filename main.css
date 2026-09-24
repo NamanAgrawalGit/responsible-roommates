@@ -330,6 +330,13 @@ input {
     font-size: 20px;
 }
 
+.history-note {
+    text-align: center;
+    font-style: italic;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
 #clear-history-btn {
     width: 100%;
     background-color: #0c3b2e;

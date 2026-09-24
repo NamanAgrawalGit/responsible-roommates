@@ -1,114 +1,73 @@
 /*
 Name: Naman Agrawal
-This is history.js which handles logic and the backend math behind the Responsible Roommates app history page.
+This is history.js. It loads the current room's activity history from
+Supabase — expenses added, chores added/completed, roommates joining, etc.
+Replaces the old localStorage-based version. History is read-only: unlike
+the old local version, entries can't be deleted, since this is now a
+shared, permanent record for the whole room rather than a personal log.
 */
+window.onload = async function () {
+    const currentRoomId = localStorage.getItem("currentRoomId");
+    const historyList = document.getElementById("history-list");
 
-window.onload = function () {
-    let history = JSON.parse(localStorage.getItem("history")) || [];
+    const actionLabels = {
+        expense_added: "Expense Added",
+        chore_added: "Chore Added",
+        chore_completed: "Chore Completed",
+        roommate_joined: "Roommate Joined",
+    };
 
-    showHistory(history);
+    function formatAction(action) {
+        if (actionLabels[action]) {
+            return actionLabels[action];
+        }
+        return action
+            .split("_")
+            .map(function (word) {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            })
+            .join(" ");
+    }
 
-    let clearHistoryBtn = document.getElementById("clear-history-btn");
+    async function loadHistory() {
+        const { data, error } = await supabaseClient
+            .from("history")
+            .select("id, action, details, created_at, profiles(name)")
+            .eq("room_id", currentRoomId)
+            .order("created_at", { ascending: false });
 
-    clearHistoryBtn.onclick = function () {
-        let confirmClear = confirm(
-            "Are you sure you want to delete all history, roommates, expenses, and chores?"
-        );
-
-        if (!confirmClear) {
+        if (error) {
+            historyList.innerHTML = "<p>Something went wrong loading history. Try refreshing.</p>";
             return;
         }
 
-        history = [];
+        if (!data || data.length === 0) {
+            historyList.innerHTML = "<p>No history yet</p>";
+            return;
+        }
 
-        localStorage.removeItem("history");
-        localStorage.removeItem("roommates");
-        localStorage.removeItem("expenses");
-        localStorage.removeItem("chores");
+        historyList.innerHTML = "";
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const actorName = entry.profiles ? entry.profiles.name : "Someone";
+            const when = new Date(entry.created_at).toLocaleString();
 
-        showHistory(history);
-    };
+            historyList.innerHTML +=
+                "<div class='history-entry'>" +
+                "<h3>" +
+                formatAction(entry.action) +
+                "</h3>" +
+                "<p>" +
+                (entry.details || "") +
+                "</p>" +
+                "<p><em>" +
+                actorName +
+                " — " +
+                when +
+                "</em></p>" +
+                "</div>";
+        }
+    }
+
+    loadHistory();
 };
-
-function showHistory(history) {
-    let historyList = document.getElementById("history-list");
-
-    if (history.length === 0) {
-        historyList.innerHTML = "<p>No history yet</p>";
-        return;
-    }
-
-    historyList.innerHTML = "";
-
-    for (let i = 0; i < history.length; i++) {
-        let entry = history[i];
-
-        historyList.innerHTML +=
-            "<div class='history-entry'>" +
-            "<h3>" +
-            entry.action +
-            "</h3>" +
-            "<p>" +
-            entry.details +
-            "</p>" +
-            "<button class='delete-history-btn' data-index='" +
-            i +
-            "'>Delete</button>" +
-            "</div>";
-    }
-
-    let deleteButtons = document.getElementsByClassName("delete-history-btn");
-
-    for (let i = 0; i < deleteButtons.length; i++) {
-        deleteButtons[i].onclick = function () {
-            let index = parseInt(this.getAttribute("data-index"));
-
-            let entry = history[index];
-
-            if (entry.type === "roommate") {
-                let roommates = JSON.parse(localStorage.getItem("roommates")) || [];
-
-                let roommateIndex = roommates.indexOf(entry.details);
-
-                if (roommateIndex !== -1) {
-                    roommates.splice(roommateIndex, 1);
-                }
-
-                localStorage.setItem("roommates", JSON.stringify(roommates));
-            }
-
-            if (entry.type === "expense") {
-                let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-
-                for (let j = 0; j < expenses.length; j++) {
-                    if (expenses[j].id === entry.id) {
-                        expenses.splice(j, 1);
-                        break;
-                    }
-                }
-
-                localStorage.setItem("expenses", JSON.stringify(expenses));
-            }
-
-            if (entry.type === "chore") {
-                let chores = JSON.parse(localStorage.getItem("chores")) || [];
-
-                for (let j = 0; j < chores.length; j++) {
-                    if (chores[j].id === entry.id) {
-                        chores.splice(j, 1);
-                        break;
-                    }
-                }
-
-                localStorage.setItem("chores", JSON.stringify(chores));
-            }
-
-            history.splice(index, 1);
-
-            localStorage.setItem("history", JSON.stringify(history));
-
-            showHistory(history);
-        };
-    }
-    return history;
-}
