@@ -1,8 +1,9 @@
 /*
 Name: Naman Agrawal
 This is balances.js. It calculates the logged-in user's balances within
-the current room — what they owe other roommates, and what other
-roommates owe them — based on unpaid expense splits.
+the current room, and shows the full expense list for the room (moved
+here from the dashboard, which only shows the 3 most recent to stay
+uncluttered).
 */
 window.onload = async function () {
     const currentRoomId = localStorage.getItem("currentRoomId");
@@ -13,32 +14,34 @@ window.onload = async function () {
     const balanceSummaryDiv = document.getElementById("balance-summary");
     const owesListDiv = document.getElementById("you-owe-list");
     const owedListDiv = document.getElementById("owed-to-you-list");
+    const allExpensesListDiv = document.getElementById("all-expenses-list");
 
-    async function loadBalances() {
-        const { data: memberRows, error: memberError } = await supabaseClient
+    let namesById = {};
+
+    async function loadMemberNames() {
+        const { data, error } = await supabaseClient
             .from("room_members")
             .select("user_id, profiles(name)")
             .eq("room_id", currentRoomId)
             .eq("is_active", true);
 
-        if (memberError || !memberRows) {
-            balanceSummaryDiv.innerHTML = "<p>Something went wrong loading roommates.</p>";
+        if (error || !data) {
             return;
         }
 
-        const namesById = {};
-        for (let i = 0; i < memberRows.length; i++) {
-            namesById[memberRows[i].user_id] = memberRows[i].profiles
-                ? memberRows[i].profiles.name
-                : "Unknown";
+        namesById = {};
+        for (let i = 0; i < data.length; i++) {
+            namesById[data[i].user_id] = data[i].profiles ? data[i].profiles.name : "Unknown";
         }
+    }
 
-        const { data: expenses, error: expenseError } = await supabaseClient
+    async function loadBalances() {
+        const { data: expenses, error } = await supabaseClient
             .from("expenses")
             .select("id, paid_by, expense_splits(user_id, amount_owed, payment_status)")
             .eq("room_id", currentRoomId);
 
-        if (expenseError) {
+        if (error) {
             balanceSummaryDiv.innerHTML = "<p>Something went wrong loading expenses.</p>";
             return;
         }
@@ -65,9 +68,6 @@ window.onload = async function () {
                 } else if (payer === user.id) {
                     net[split.user_id] = (net[split.user_id] || 0) + amount;
                 }
-                // Expenses that don't involve the current user at all are
-                // skipped — this page shows "my" balances, not the whole
-                // room's ledger.
             }
         }
 
@@ -130,5 +130,57 @@ window.onload = async function () {
             "</strong></p>";
     }
 
-    loadBalances();
+    async function loadAllExpenses() {
+        const { data, error } = await supabaseClient
+            .from("expenses")
+            .select("id, name, amount, paid_by, date, expense_splits(user_id, amount_owed, payment_status)")
+            .eq("room_id", currentRoomId)
+            .order("date", { ascending: false });
+
+        if (error) {
+            allExpensesListDiv.innerHTML = "<p>Something went wrong loading expenses.</p>";
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            allExpensesListDiv.innerHTML = "<p>No expenses added</p>";
+            return;
+        }
+
+        allExpensesListDiv.innerHTML = "";
+        for (let i = 0; i < data.length; i++) {
+            const expense = data[i];
+            const payerName = namesById[expense.paid_by] || "Unknown";
+
+            let splitsHtml = "";
+            for (let j = 0; j < expense.expense_splits.length; j++) {
+                const split = expense.expense_splits[j];
+                const name = namesById[split.user_id] || "Unknown";
+                splitsHtml +=
+                    name +
+                    ": $" +
+                    Number(split.amount_owed).toFixed(2) +
+                    (split.payment_status === "paid" ? " (paid)" : " (unpaid)") +
+                    "<br>";
+            }
+
+            allExpensesListDiv.innerHTML +=
+                "<div class='expense-entry'><h3>" +
+                expense.name +
+                " — $" +
+                Number(expense.amount).toFixed(2) +
+                " (" +
+                expense.date +
+                ")</h3>" +
+                "<p>Paid by: " +
+                payerName +
+                "</p><p>" +
+                splitsHtml +
+                "</p></div>";
+        }
+    }
+
+    await loadMemberNames();
+    await loadBalances();
+    await loadAllExpenses();
 };

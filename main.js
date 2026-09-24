@@ -1,8 +1,8 @@
 /*
 Name: Naman Agrawal
-This is main.js. It loads the current room's members, expenses, and an
-open-chores preview from Supabase, and handles adding new expenses.
-Replaces the old localStorage-based version.
+This is main.js. It loads the current room's members, a balance summary,
+the 3 most recent expenses, and an open-chores preview from Supabase, and
+handles adding new expenses (equal or custom-dollar split).
 */
 window.onload = async function () {
     const currentRoomId = localStorage.getItem("currentRoomId");
@@ -26,6 +26,14 @@ window.onload = async function () {
     const expenseListDiv = document.getElementById("expense-list");
     const balanceSummaryMiniDiv = document.getElementById("balance-summary-mini");
     const choreListDiv = document.getElementById("chore-list");
+    const amountInput = document.getElementById("amount");
+    const splitEqualRadio = document.getElementById("split-equal");
+    const splitCustomRadio = document.getElementById("split-custom");
+    const customSplitSection = document.getElementById("custom-split-section");
+    const customSplitInputs = document.getElementById("custom-split-inputs");
+    const customSplitRemaining = document.getElementById("custom-split-remaining");
+
+    const RECENT_EXPENSE_LIMIT = 3;
 
     // Expand/close the split-expense area. (Uses a plain flag instead of
     // reading style.display back, since CSS — not inline style — is what
@@ -37,11 +45,86 @@ window.onload = async function () {
         splitExpenseExpand.innerHTML = expenseFormOpen ? " - Split an Expense" : "+ Split an Expense";
     });
 
+    function getSelectedMemberIds() {
+        const boxes = document.getElementsByClassName("roommate-checkbox");
+        const selected = [];
+        for (let i = 0; i < boxes.length; i++) {
+            if (boxes[i].checked) {
+                selected.push(boxes[i].value);
+            }
+        }
+        return selected;
+    }
+
+    function isCustomMode() {
+        return splitCustomRadio.checked;
+    }
+
+    // Rebuilds the per-person dollar-amount inputs whenever the split
+    // method is "custom" and either the participant list or the total
+    // amount changes.
+    function renderCustomSplitInputs() {
+        if (!isCustomMode()) {
+            customSplitSection.style.display = "none";
+            return;
+        }
+
+        customSplitSection.style.display = "block";
+        const selectedIds = getSelectedMemberIds();
+
+        // Preserve any amounts already typed in, keyed by member id.
+        const existingValues = {};
+        const existingInputs = document.getElementsByClassName("custom-amount-input");
+        for (let i = 0; i < existingInputs.length; i++) {
+            existingValues[existingInputs[i].getAttribute("data-member-id")] = existingInputs[i].value;
+        }
+
+        customSplitInputs.innerHTML = "";
+        for (let i = 0; i < selectedIds.length; i++) {
+            const memberId = selectedIds[i];
+            const name = membersById[memberId] || "Unknown";
+            const prevValue = existingValues[memberId] || "";
+            customSplitInputs.innerHTML +=
+                "<div class='custom-split-row'><label>" +
+                name +
+                "</label><input type='number' step='0.01' min='0' class='custom-amount-input' " +
+                "data-member-id='" +
+                memberId +
+                "' value='" +
+                prevValue +
+                "' placeholder='$0.00'></div>";
+        }
+
+        const newInputs = document.getElementsByClassName("custom-amount-input");
+        for (let i = 0; i < newInputs.length; i++) {
+            newInputs[i].addEventListener("input", updateRemainingDisplay);
+        }
+
+        updateRemainingDisplay();
+    }
+
+    function updateRemainingDisplay() {
+        const total = parseFloat(amountInput.value) || 0;
+        const inputs = document.getElementsByClassName("custom-amount-input");
+        let sum = 0;
+        for (let i = 0; i < inputs.length; i++) {
+            sum += parseFloat(inputs[i].value) || 0;
+        }
+        const remaining = total - sum;
+        customSplitRemaining.innerHTML =
+            "Remaining to assign: $" + remaining.toFixed(2) + " (of $" + total.toFixed(2) + " total)";
+    }
+
+    splitEqualRadio.addEventListener("change", renderCustomSplitInputs);
+    splitCustomRadio.addEventListener("change", renderCustomSplitInputs);
+    amountInput.addEventListener("input", updateRemainingDisplay);
+
     selectAllCheckboxes.addEventListener("change", function () {
         const boxes = document.getElementsByClassName("roommate-checkbox");
         for (let i = 0; i < boxes.length; i++) {
             boxes[i].checked = selectAllCheckboxes.checked;
         }
+        renderCustomSplitInputs();
     });
 
     async function loadMembers() {
@@ -86,6 +169,10 @@ window.onload = async function () {
                 '" checked> ' +
                 members[i].name +
                 "</label><br>";
+        }
+        const checkboxes = document.getElementsByClassName("roommate-checkbox");
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].addEventListener("change", renderCustomSplitInputs);
         }
 
         paidBySelect.innerHTML = "";
@@ -157,12 +244,16 @@ window.onload = async function () {
             "<a href='balances.html' class='balance-link'>View full balances &rarr;</a>";
     }
 
+    // Only the most recent few expenses show here — the dashboard is meant
+    // to be a quick glance, not a full ledger. Everything (all expenses,
+    // in full) lives on the Balances page.
     async function loadExpenses() {
         const { data, error } = await supabaseClient
             .from("expenses")
             .select("id, name, amount, paid_by, date, expense_splits(user_id, amount_owed, payment_status)")
             .eq("room_id", currentRoomId)
-            .order("date", { ascending: false });
+            .order("date", { ascending: false })
+            .limit(RECENT_EXPENSE_LIMIT);
 
         if (error) {
             expenseListDiv.innerHTML = "<p>Something went wrong loading expenses. Try refreshing.</p>";
@@ -203,6 +294,9 @@ window.onload = async function () {
                 splitsHtml +
                 "</p></div>";
         }
+
+        expenseListDiv.innerHTML +=
+            "<a href='balances.html' class='balance-link'>View all expenses &rarr;</a>";
     }
 
     async function loadChoresPreview() {
@@ -234,15 +328,9 @@ window.onload = async function () {
 
     splitCostBtn.addEventListener("click", async function () {
         const item = document.getElementById("item").value.trim();
-        const amount = parseFloat(document.getElementById("amount").value);
+        const amount = parseFloat(amountInput.value);
         const paidBy = paidBySelect.value;
-        const boxes = document.getElementsByClassName("roommate-checkbox");
-        const selected = [];
-        for (let i = 0; i < boxes.length; i++) {
-            if (boxes[i].checked) {
-                selected.push(boxes[i].value);
-            }
-        }
+        const selected = getSelectedMemberIds();
 
         expenseErrorDiv.innerHTML = "";
 
@@ -250,6 +338,39 @@ window.onload = async function () {
             expenseErrorDiv.innerHTML =
                 "<p>You need an expense item, who paid, roommates to split with, and a valid amount.</p>";
             return;
+        }
+
+        let splitAmounts = {}; // memberId -> amount owed
+        const splitMethod = isCustomMode() ? "custom" : "equal";
+
+        if (splitMethod === "equal") {
+            const perPerson = amount / selected.length;
+            for (let i = 0; i < selected.length; i++) {
+                splitAmounts[selected[i]] = perPerson;
+            }
+        } else {
+            const inputs = document.getElementsByClassName("custom-amount-input");
+            let sum = 0;
+            for (let i = 0; i < inputs.length; i++) {
+                const memberId = inputs[i].getAttribute("data-member-id");
+                const value = parseFloat(inputs[i].value);
+                if (isNaN(value) || value < 0) {
+                    expenseErrorDiv.innerHTML = "<p>Enter a valid amount for every selected roommate.</p>";
+                    return;
+                }
+                splitAmounts[memberId] = value;
+                sum += value;
+            }
+
+            if (Math.abs(sum - amount) > 0.01) {
+                expenseErrorDiv.innerHTML =
+                    "<p>Custom amounts must add up to $" +
+                    amount.toFixed(2) +
+                    " (currently $" +
+                    sum.toFixed(2) +
+                    ").</p>";
+                return;
+            }
         }
 
         splitCostBtn.disabled = true;
@@ -261,7 +382,7 @@ window.onload = async function () {
                 name: item,
                 amount: amount,
                 paid_by: paidBy,
-                split_method: "equal",
+                split_method: splitMethod,
                 created_by: user.id,
             })
             .select()
@@ -273,12 +394,11 @@ window.onload = async function () {
             return;
         }
 
-        const perPerson = amount / selected.length;
         const splitRows = selected.map(function (memberId) {
             return {
                 expense_id: expenseData.id,
                 user_id: memberId,
-                amount_owed: perPerson,
+                amount_owed: splitAmounts[memberId],
                 payment_status: memberId === paidBy ? "paid" : "unpaid",
             };
         });
@@ -302,7 +422,10 @@ window.onload = async function () {
         }
 
         document.getElementById("item").value = "";
-        document.getElementById("amount").value = "";
+        amountInput.value = "";
+        splitEqualRadio.checked = true;
+        customSplitSection.style.display = "none";
+        customSplitInputs.innerHTML = "";
         splitExpenseForm.style.display = "none";
         expenseFormOpen = false;
         splitExpenseExpand.innerHTML = "+ Split an Expense";

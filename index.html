@@ -86,10 +86,20 @@ track of past actions and allows users to delete individual entries or clear all
                         <input type="number" id="amount" step="0.01" placeholder="$0.00" min="0.00">
                     </div>
                     <div>
+                        <h3>Split Method</h3>
+                        <label><input type="radio" name="split-method" value="equal" id="split-equal" checked> Equal Split</label>
+                        <label><input type="radio" name="split-method" value="custom" id="split-custom"> Custom Amounts</label>
+                    </div>
+                    <div>
                         <h3>Split Between</h3>
                         <input type="checkbox" id="select-all" checked>
                         <label for="select-all">Select All</label>
                         <div id="split-checkboxes"></div>
+                    </div>
+                    <div id="custom-split-section" style="display: none;">
+                        <h3>Custom Amounts</h3>
+                        <div id="custom-split-inputs"></div>
+                        <p id="custom-split-remaining"></p>
                     </div>
                     <button id="split-cost-btn">Add Expense</button>
                     <div id="expense-error"></div>
