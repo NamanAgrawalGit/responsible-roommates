@@ -15,6 +15,9 @@ window.onload = async function () {
         chore_added: "Chore Added",
         chore_completed: "Chore Completed",
         roommate_joined: "Roommate Joined",
+        payment_marked_paid: "Payment Marked Paid",
+        payment_confirmed: "Payment Confirmed",
+        payment_declined: "Payment Declined",
     };
 
     function formatAction(action) {

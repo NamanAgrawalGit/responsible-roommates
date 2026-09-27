@@ -766,3 +766,135 @@ input {
         grid-template-columns: 1fr;
     }
 }
+
+/* ---------- Mark as Paid ---------- */
+
+.mark-paid-btn {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.mark-paid-form {
+    display: none;
+    background-color: white;
+    border-radius: 15px;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.mark-paid-form.open {
+    display: block;
+}
+
+.mark-paid-form label {
+    display: block;
+    font-weight: bold;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    font-size: 13px;
+}
+
+.mark-paid-form input {
+    width: 100%;
+    margin-bottom: 4px;
+    box-sizing: border-box;
+}
+
+.submit-mark-paid-btn {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    font-size: 13px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.mark-paid-error {
+    color: #ff4d4f;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+/* ---------- Pending payments ---------- */
+
+.pending-payments {
+    max-width: 700px;
+    background-color: #fffdd0;
+    border-radius: 30px;
+    padding: 20px;
+    margin: 20px auto;
+    color: #0c3b2e;
+}
+
+.pending-payments h2 {
+    text-align: center;
+    margin-top: 0;
+}
+
+.pending-payments h3 {
+    margin-bottom: 8px;
+}
+
+.pending-payment-entry {
+    background-color: white;
+    border-radius: 15px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.pending-payment-entry p {
+    margin: 0 0 8px 0;
+}
+
+.confirm-payment-btn,
+.decline-payment-btn,
+.submit-decline-btn {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: "PT Serif Caption", serif;
+    font-weight: bold;
+    font-size: 13px;
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+.decline-payment-btn {
+    background-color: #ff4d4f;
+}
+
+.decline-form {
+    display: none;
+    margin-top: 10px;
+}
+
+.decline-form.open {
+    display: block;
+}
+
+.decline-form label {
+    display: block;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.decline-form input {
+    width: 100%;
+    margin-bottom: 6px;
+    box-sizing: border-box;
+}
