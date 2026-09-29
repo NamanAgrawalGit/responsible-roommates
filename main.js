@@ -439,3 +439,31 @@ window.onload = async function () {
     await loadExpenses();
     await loadChoresPreview();
 };
+
+
+supabaseClient
+    .channel("room-" + currentRoomId + "-dashboard")
+    .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expenses", filter: "room_id=eq." + currentRoomId },
+        function () {
+            loadExpenses();
+            loadBalanceSummary();
+        }
+    )
+    .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expense_splits" },
+        function () {
+            loadExpenses();
+            loadBalanceSummary();
+        }
+    )
+    .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chores", filter: "room_id=eq." + currentRoomId },
+        function () {
+            loadChoresPreview();
+        }
+    )
+    .subscribe();
