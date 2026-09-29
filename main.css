@@ -767,9 +767,10 @@ input {
     }
 }
 
-/* ---------- Mark as Paid ---------- */
+/* ---------- Mark as Paid / They Paid Me ---------- */
 
-.mark-paid-btn {
+.mark-paid-btn,
+.mark-received-btn {
     background-color: #0c3b2e;
     color: white;
     border: none;
@@ -808,7 +809,8 @@ input {
     box-sizing: border-box;
 }
 
-.submit-mark-paid-btn {
+.submit-mark-paid-btn,
+.submit-mark-received-btn {
     background-color: #0c3b2e;
     color: white;
     border: none;
@@ -899,13 +901,11 @@ input {
     box-sizing: border-box;
 }
 
-.confirmed-banner {
-    max-width: 700px;
-    background-color: #d7f5d7;
-    color: #0c3b2e;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 20px;
-    padding: 12px 15px;
-    margin: 20px auto 0 auto;
+/* ---------- Chore rotation note ---------- */
+
+.rotation-note {
+    font-size: 13px;
+    font-style: italic;
+    margin-bottom: 8px;
 }
+

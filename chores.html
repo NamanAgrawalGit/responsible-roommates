@@ -68,6 +68,26 @@ This page allows roommates to create and manage chores.
                         <label for="assign-to">Assign to:</label>
                         <select id="assign-to"></select>
                     </div>
+                    <div>
+                        <h3>Repeats</h3>
+                        <label for="repeat-frequency">Repeats:</label>
+                        <select id="repeat-frequency">
+                            <option value="none">Does not repeat</option>
+                            <option value="weekly">Every week</option>
+                            <option value="biweekly">Every 2 weeks</option>
+                            <option value="monthly">Every month</option>
+                        </select>
+                    </div>
+                    <div id="rotation-section" style="display: none;">
+                        <h3>Rotate Between</h3>
+                        <p class="rotation-note">
+                            Check roommates in the order the chore should rotate. The first
+                            person checked becomes the assignee now; it moves to the next
+                            checked person each time the chore is completed. Leave everyone
+                            unchecked to keep reassigning it to the same person each time.
+                        </p>
+                        <div id="rotation-checkboxes"></div>
+                    </div>
                     <button id="split-chore-btn">Add Chore</button>
                     <div id="chore-error"></div>
                 </div>
