@@ -898,3 +898,14 @@ input {
     margin-bottom: 6px;
     box-sizing: border-box;
 }
+
+.confirmed-banner {
+    max-width: 700px;
+    background-color: #d7f5d7;
+    color: #0c3b2e;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 20px;
+    padding: 12px 15px;
+    margin: 20px auto 0 auto;
+}

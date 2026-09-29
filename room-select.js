@@ -1,9 +1,23 @@
 /*
 Name: Naman Agrawal
 This is room-select.js. It shows the rooms a logged-in user belongs to,
-and handles creating a new room or joining one with an invite code.
+and handles creating a new room or joining one with an invite code. It
+also detects when the page was just reached via an email confirmation
+link (Supabase appends "type=signup" to the URL hash in that case) and
+shows a one-time banner, then cleans the token out of the address bar.
 */
 window.onload = async function () {
+    const confirmationBanner = document.getElementById("confirmation-banner");
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+
+    if (hashParams.get("type") === "signup") {
+        confirmationBanner.innerHTML =
+            "<div class='confirmed-banner'>✅ Your email is confirmed! Welcome to Responsible Roommates.</div>";
+        // Strip the access token etc. out of the visible URL/history now
+        // that Supabase has already used it to create the session.
+        window.history.replaceState(null, "", window.location.pathname);
+    }
+
     const {
         data: { user },
     } = await supabaseClient.auth.getUser();

@@ -36,6 +36,8 @@ room, or join an existing one using an invite code.
         </header>
 
         <main>
+            <div id="confirmation-banner"></div>
+
             <section class="room-select">
                 <h2>Your Rooms</h2>
                 <div id="room-list">
@@ -46,9 +48,9 @@ room, or join an existing one using an invite code.
                     <div class="room-panel">
                         <h3>Create a Room</h3>
                         <label for="create-room-name">Room name:</label>
-                        <input type="text" id="create-room-name" placeholder="e.g. Apartment #485">
+                        <input type="text" id="create-room-name" placeholder="e.g. McCarty Apartment">
                         <label for="create-room-address">Address (optional):</label>
-                        <input type="text" id="create-room-address" placeholder="e.g. 123 Creek St, Apt 6A (optional)">
+                        <input type="text" id="create-room-address" placeholder="e.g. 123 Maple St, Apt 4B (optional)">
                         <label for="create-room-movein">Move-in date (optional):</label>
                         <input type="date" id="create-room-movein">
                         <button id="create-room-btn">Create Room</button>

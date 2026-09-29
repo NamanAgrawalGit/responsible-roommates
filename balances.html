@@ -1,7 +1,8 @@
 <!--
 Name: Naman Agrawal
 This page shows the current user's balances within the room: what they
-owe other roommates, and what other roommates owe them.
+owe other roommates, and what other roommates owe them. It also handles
+recording and confirming payments between roommates.
 -->
 <!doctype html>
 <html lang="en">
@@ -18,6 +19,7 @@ owe other roommates, and what other roommates owe them.
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
+        <script src="currencyInput.js" defer></script>
         <script src="balances.js" defer></script>
         <title>Responsible Roommates - Balances</title>
     </head>
@@ -60,9 +62,26 @@ owe other roommates, and what other roommates owe them.
                 </div>
 
                 <p class="balance-note">
-                    Balances only reflect unpaid expense splits. Once payment tracking is
-                    added, marking something as paid will update these numbers.
+                    Marking "I Paid This" reduces your balance once the other roommate confirms
+                    it. If someone paid you outside the app, use "They Paid Me" under Owed to You
+                    to record it yourself. Either way, individual expenses below still show as
+                    unpaid — payments are tracked as a running total, not against specific
+                    expenses.
                 </p>
+            </section>
+
+            <section class="pending-payments">
+                <h2>Payments</h2>
+
+                <h3>Awaiting Your Confirmation</h3>
+                <div id="awaiting-confirmation-list">
+                    <p>Loading...</p>
+                </div>
+
+                <h3>Sent, Waiting on Confirmation</h3>
+                <div id="sent-payments-list">
+                    <p>Loading...</p>
+                </div>
             </section>
 
             <section class="all-expenses">

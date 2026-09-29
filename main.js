@@ -2,7 +2,10 @@
 Name: Naman Agrawal
 This is main.js. It loads the current room's members, a balance summary,
 the 3 most recent expenses, and an open-chores preview from Supabase, and
-handles adding new expenses (equal or custom-dollar split).
+handles adding new expenses (equal or custom-dollar split). It also
+subscribes to Supabase Realtime so the dashboard updates automatically
+when anyone in the room adds an expense or chore, instead of requiring a
+manual page reload.
 */
 window.onload = async function () {
     const currentRoomId = localStorage.getItem("currentRoomId");
@@ -34,6 +37,8 @@ window.onload = async function () {
     const customSplitRemaining = document.getElementById("custom-split-remaining");
 
     const RECENT_EXPENSE_LIMIT = 3;
+
+    attachCurrencyInput(amountInput);
 
     // Expand/close the split-expense area. (Uses a plain flag instead of
     // reading style.display back, since CSS — not inline style — is what
@@ -72,22 +77,26 @@ window.onload = async function () {
         customSplitSection.style.display = "block";
         const selectedIds = getSelectedMemberIds();
 
-        // Preserve any amounts already typed in, keyed by member id.
+        // Preserve any amounts already typed in, keyed by member id. Read
+        // through getCurrencyValue so a re-render doesn't double up a "$"
+        // that attachCurrencyInput already added.
         const existingValues = {};
         const existingInputs = document.getElementsByClassName("custom-amount-input");
         for (let i = 0; i < existingInputs.length; i++) {
-            existingValues[existingInputs[i].getAttribute("data-member-id")] = existingInputs[i].value;
+            const memberId = existingInputs[i].getAttribute("data-member-id");
+            const value = getCurrencyValue(existingInputs[i]);
+            existingValues[memberId] = isNaN(value) ? "" : value;
         }
 
         customSplitInputs.innerHTML = "";
         for (let i = 0; i < selectedIds.length; i++) {
             const memberId = selectedIds[i];
             const name = membersById[memberId] || "Unknown";
-            const prevValue = existingValues[memberId] || "";
+            const prevValue = existingValues[memberId] === undefined ? "" : existingValues[memberId];
             customSplitInputs.innerHTML +=
                 "<div class='custom-split-row'><label>" +
                 name +
-                "</label><input type='number' step='0.01' min='0' class='custom-amount-input' " +
+                "</label><input class='custom-amount-input' " +
                 "data-member-id='" +
                 memberId +
                 "' value='" +
@@ -97,6 +106,7 @@ window.onload = async function () {
 
         const newInputs = document.getElementsByClassName("custom-amount-input");
         for (let i = 0; i < newInputs.length; i++) {
+            attachCurrencyInput(newInputs[i]);
             newInputs[i].addEventListener("input", updateRemainingDisplay);
         }
 
@@ -104,11 +114,12 @@ window.onload = async function () {
     }
 
     function updateRemainingDisplay() {
-        const total = parseFloat(amountInput.value) || 0;
+        const total = getCurrencyValue(amountInput) || 0;
         const inputs = document.getElementsByClassName("custom-amount-input");
         let sum = 0;
         for (let i = 0; i < inputs.length; i++) {
-            sum += parseFloat(inputs[i].value) || 0;
+            const value = getCurrencyValue(inputs[i]);
+            sum += isNaN(value) ? 0 : value;
         }
         const remaining = total - sum;
         customSplitRemaining.innerHTML =
@@ -234,6 +245,30 @@ window.onload = async function () {
             }
         }
 
+        // Confirmed payments reduce these totals directly. This is an
+        // aggregate approximation for the mini dashboard summary — the
+        // full pairwise version (with per-person "I Paid This" /
+        // "They Paid Me" buttons) lives on balances.js.
+        const { data: paymentData } = await supabaseClient
+            .from("payments")
+            .select("payer_id, recipient_id, amount")
+            .eq("room_id", currentRoomId)
+            .eq("status", "confirmed");
+
+        if (paymentData) {
+            for (let i = 0; i < paymentData.length; i++) {
+                const payment = paymentData[i];
+                const amount = Number(payment.amount);
+                if (payment.payer_id === user.id) {
+                    totalOwed -= amount;
+                } else if (payment.recipient_id === user.id) {
+                    totalOwedToYou -= amount;
+                }
+            }
+            totalOwed = Math.max(0, totalOwed);
+            totalOwedToYou = Math.max(0, totalOwedToYou);
+        }
+
         balanceSummaryMiniDiv.innerHTML =
             "<div class='mini-balance-row'><span>You owe</span><span>$" +
             totalOwed.toFixed(2) +
@@ -328,7 +363,7 @@ window.onload = async function () {
 
     splitCostBtn.addEventListener("click", async function () {
         const item = document.getElementById("item").value.trim();
-        const amount = parseFloat(amountInput.value);
+        const amount = getCurrencyValue(amountInput);
         const paidBy = paidBySelect.value;
         const selected = getSelectedMemberIds();
 
@@ -351,13 +386,32 @@ window.onload = async function () {
         } else {
             const inputs = document.getElementsByClassName("custom-amount-input");
             let sum = 0;
+
             for (let i = 0; i < inputs.length; i++) {
                 const memberId = inputs[i].getAttribute("data-member-id");
-                const value = parseFloat(inputs[i].value);
-                if (isNaN(value) || value < 0) {
-                    expenseErrorDiv.innerHTML = "<p>Enter a valid amount for every selected roommate.</p>";
+                const name = membersById[memberId] || "That roommate";
+                const value = getCurrencyValue(inputs[i]);
+
+                if (isNaN(value)) {
+                    expenseErrorDiv.innerHTML = "<p>Enter a valid amount for " + name + ".</p>";
                     return;
                 }
+                if (value < 0) {
+                    expenseErrorDiv.innerHTML = "<p>" + name + "'s amount can't be negative.</p>";
+                    return;
+                }
+                if (value > amount) {
+                    expenseErrorDiv.innerHTML =
+                        "<p>" +
+                        name +
+                        "'s amount ($" +
+                        value.toFixed(2) +
+                        ") can't be more than the total expense ($" +
+                        amount.toFixed(2) +
+                        ").</p>";
+                    return;
+                }
+
                 splitAmounts[memberId] = value;
                 sum += value;
             }
@@ -434,36 +488,42 @@ window.onload = async function () {
         loadBalanceSummary();
     });
 
+    // Auto-refresh: rather than requiring a manual reload to see an
+    // expense or chore that someone else (or another tab) just added,
+    // subscribe to the tables this page cares about and re-run the
+    // relevant load functions whenever something changes.
+    supabaseClient
+        .channel("room-" + currentRoomId + "-dashboard")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "expenses", filter: "room_id=eq." + currentRoomId },
+            function () {
+                loadExpenses();
+                loadBalanceSummary();
+            }
+        )
+        .on("postgres_changes", { event: "*", schema: "public", table: "expense_splits" }, function () {
+            loadExpenses();
+            loadBalanceSummary();
+        })
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "chores", filter: "room_id=eq." + currentRoomId },
+            function () {
+                loadChoresPreview();
+            }
+        )
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "payments", filter: "room_id=eq." + currentRoomId },
+            function () {
+                loadBalanceSummary();
+            }
+        )
+        .subscribe();
+
     await loadMembers();
     await loadBalanceSummary();
     await loadExpenses();
     await loadChoresPreview();
 };
-
-
-supabaseClient
-    .channel("room-" + currentRoomId + "-dashboard")
-    .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "expenses", filter: "room_id=eq." + currentRoomId },
-        function () {
-            loadExpenses();
-            loadBalanceSummary();
-        }
-    )
-    .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "expense_splits" },
-        function () {
-            loadExpenses();
-            loadBalanceSummary();
-        }
-    )
-    .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chores", filter: "room_id=eq." + currentRoomId },
-        function () {
-            loadChoresPreview();
-        }
-    )
-    .subscribe();
