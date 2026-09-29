@@ -191,8 +191,18 @@ header ul {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid #eee;
     font-weight: bold;
+}
+
+.balance-row-wrapper {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+}
+
+.balance-row-wrapper .balance-row {
+    border-bottom: none;
+    padding-bottom: 2px;
 }
 
 .balance-note {
@@ -767,10 +777,9 @@ input {
     }
 }
 
-/* ---------- Mark as Paid / They Paid Me ---------- */
+/* ---------- Mark as Paid ---------- */
 
-.mark-paid-btn,
-.mark-received-btn {
+.mark-paid-btn {
     background-color: #0c3b2e;
     color: white;
     border: none;
@@ -809,8 +818,7 @@ input {
     box-sizing: border-box;
 }
 
-.submit-mark-paid-btn,
-.submit-mark-received-btn {
+.submit-mark-paid-btn {
     background-color: #0c3b2e;
     color: white;
     border: none;
@@ -901,11 +909,13 @@ input {
     box-sizing: border-box;
 }
 
-/* ---------- Chore rotation note ---------- */
-
-.rotation-note {
-    font-size: 13px;
-    font-style: italic;
-    margin-bottom: 8px;
+.confirmed-banner {
+    max-width: 700px;
+    background-color: #d7f5d7;
+    color: #0c3b2e;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 20px;
+    padding: 12px 15px;
+    margin: 20px auto 0 auto;
 }
-
