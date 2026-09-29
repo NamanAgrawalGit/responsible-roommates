@@ -919,3 +919,7 @@ input {
     padding: 12px 15px;
     margin: 20px auto 0 auto;
 }
+
+.hidden {
+    display: none;
+}
