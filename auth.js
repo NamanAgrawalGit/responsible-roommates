@@ -73,6 +73,8 @@ window.onload = async function () {
                 password: password,
                 options: {
                     data: { name: name },
+                    emailRedirectTo:
+                        window.location.origin + window.location.pathname.replace("auth.html", "room-select.html"),
                 },
             });
 
