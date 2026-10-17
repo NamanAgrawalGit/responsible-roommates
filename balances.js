@@ -125,32 +125,26 @@ window.onload = async function () {
         const note = noteInput.value.trim();
         const payerId = direction === "owe" ? user.id : otherId;
         const recipientId = direction === "owe" ? otherId : user.id;
-        const status = direction === "owe" ? "pending" : "confirmed";
+        const rpcName = direction === "owe" ? "record_outgoing_payment" : "record_received_payment";
+        const rpcArgs = direction === "owe"
+            ? {
+                  room_id_input: currentRoomId,
+                  recipient_id_input: recipientId,
+                  amount_input: amount,
+                  note_input: note === "" ? null : note,
+              }
+            : {
+                  room_id_input: currentRoomId,
+                  payer_id_input: payerId,
+                  amount_input: amount,
+                  note_input: note === "" ? null : note,
+              };
 
-        const { error } = await supabaseClient.from("payments").insert({
-            room_id: currentRoomId,
-            payer_id: payerId,
-            recipient_id: recipientId,
-            amount: amount,
-            status: status,
-            note: note === "" ? null : note,
-        });
-
+        const { error } = await supabaseClient.rpc(rpcName, rpcArgs);
         if (error) {
-            errorDiv.innerHTML = error.message;
+            errorDiv.textContent = error.message || "Could not record this payment. Please try again.";
             return;
         }
-
-        await supabaseClient.from("history").insert({
-            room_id: currentRoomId,
-            actor_id: user.id,
-            action: direction === "owe" ? "payment_marked_paid" : "payment_confirmed",
-            details:
-                direction === "owe"
-                    ? "Marked $" + amount.toFixed(2) + " as paid to " + otherName
-                    : "Recorded $" + amount.toFixed(2) + " received from " + otherName,
-            related_type: "payment",
-        });
 
         await loadBalances();
         await loadPendingPayments();
@@ -318,15 +312,15 @@ window.onload = async function () {
                     const payerName = this.getAttribute("data-payer");
                     const amount = parseFloat(this.getAttribute("data-amount"));
 
-                    await supabaseClient.from("payments").update({ status: "confirmed" }).eq("id", id);
-                    await supabaseClient.from("history").insert({
-                        room_id: currentRoomId,
-                        actor_id: user.id,
-                        action: "payment_confirmed",
-                        details: "Confirmed $" + amount.toFixed(2) + " paid by " + payerName,
-                        related_type: "payment",
-                        related_id: id,
+                    const { error } = await supabaseClient.rpc("respond_to_payment", {
+                        payment_id_input: id,
+                        new_status_input: "confirmed",
+                        reason_input: null,
                     });
+                    if (error) {
+                        window.alert(error.message || "Could not confirm this payment.");
+                        return;
+                    }
 
                     await loadBalances();
                     await loadPendingPayments();
@@ -348,15 +342,15 @@ window.onload = async function () {
                     const reasonInput = document.querySelector(".decline-reason-input[data-id='" + id + "']");
                     const reason = reasonInput.value.trim();
 
-                    await supabaseClient.from("payments").update({ status: "declined" }).eq("id", id);
-                    await supabaseClient.from("history").insert({
-                        room_id: currentRoomId,
-                        actor_id: user.id,
-                        action: "payment_declined",
-                        details: reason === "" ? "Declined a payment" : "Declined a payment: " + reason,
-                        related_type: "payment",
-                        related_id: id,
+                    const { error } = await supabaseClient.rpc("respond_to_payment", {
+                        payment_id_input: id,
+                        new_status_input: "declined",
+                        reason_input: reason === "" ? null : reason,
                     });
+                    if (error) {
+                        window.alert(error.message || "Could not decline this payment.");
+                        return;
+                    }
 
                     await loadPendingPayments();
                 });
