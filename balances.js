@@ -53,9 +53,27 @@ window.onload = async function () {
     }
 
     // Build a balance row and its payment form.
-    function buildBalanceEntryHtml(entry, direction) {
+    function buildBalanceEntryHtml(entry, direction, hasPendingPayment) {
         const buttonLabel =
             direction === "owe" ? "I Paid This" : "They Paid Me";
+
+        // You can't record another payment to someone while an earlier one is
+        // still waiting for their confirmation. (The database enforces this
+        // too; this just hides the button so it isn't offered.)
+        if (direction === "owe" && hasPendingPayment) {
+            return (
+                "<div class='balance-row-wrapper'>" +
+                "<div class='balance-row'><span>" +
+                escapeHtml(entry.name) +
+                "</span><span>$" +
+                entry.amount.toFixed(2) +
+                "</span></div>" +
+                "<p class='pending-note'>Payment sent. Waiting for " +
+                escapeHtml(entry.name) +
+                " to confirm.</p>" +
+                "</div>"
+            );
+        }
 
         return (
             "<div class='balance-row-wrapper'>" +
@@ -222,6 +240,24 @@ window.onload = async function () {
 
         const summary = summarizeBalances(result.netCents);
 
+        // Who do I already have an unconfirmed payment waiting with?
+        const pendingTo = {};
+        const { data: pendingOut, error: pendingOutError } =
+            await supabaseClient
+                .from("payments")
+                .select("recipient_id")
+                .eq("room_id", currentRoomId)
+                .eq("payer_id", user.id)
+                .eq("status", "pending");
+
+        if (pendingOutError) {
+            console.error("Could not check pending payments:", pendingOutError);
+        } else {
+            for (let i = 0; i < pendingOut.length; i++) {
+                pendingTo[pendingOut[i].recipient_id] = true;
+            }
+        }
+
         const owesEntries = summary.owes.map(function (entry) {
             return {
                 name: namesById[entry.id] || "Unknown",
@@ -247,7 +283,8 @@ window.onload = async function () {
             for (let i = 0; i < owesEntries.length; i++) {
                 owesListDiv.innerHTML += buildBalanceEntryHtml(
                     owesEntries[i],
-                    "owe"
+                    "owe",
+                    !!pendingTo[owesEntries[i].id]
                 );
             }
         }

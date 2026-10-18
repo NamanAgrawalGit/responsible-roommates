@@ -32,9 +32,9 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
         }
     });
 
-    // Shows the number of unread notifications (for the current room) next
-    // to the "Notifications" nav link. Fails quietly: a badge problem should
-    // never break the page.
+    // Lights up the bell in the header corner when the current room has
+    // unread notifications, and clears it once they've been viewed. Fails
+    // quietly: a bell problem should never break the page.
     async function updateNotificationBadge() {
         const link = document.getElementById("notifications-link");
         const roomId = localStorage.getItem("currentRoomId");
@@ -50,24 +50,42 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
             .eq("is_read", false);
 
         let badge = document.getElementById("notifications-badge");
+
         if (error || !count) {
+            link.classList.remove("has-unread");
+            link.setAttribute("aria-label", "Notifications");
             if (badge) {
                 badge.remove();
             }
             return;
         }
 
+        link.classList.add("has-unread");
+        link.setAttribute(
+            "aria-label",
+            "Notifications (" + count + " unread)"
+        );
+
         if (!badge) {
             badge = document.createElement("span");
             badge.id = "notifications-badge";
-            badge.className = "nav-badge";
+            badge.className = "bell-count";
             link.appendChild(badge);
         }
         badge.textContent = count > 99 ? "99+" : String(count);
     }
     window.refreshNotificationBadge = updateNotificationBadge;
 
-    document.addEventListener("DOMContentLoaded", function () {
+    // Check again every 30 seconds and whenever the tab becomes visible, so
+    // the bell lights up without a manual refresh.
+    setInterval(updateNotificationBadge, 30000);
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+            updateNotificationBadge();
+        }
+    });
+
+    function onPageReady() {
         updateNotificationBadge();
 
         const logoutBtn = document.getElementById("logout-btn");
@@ -96,5 +114,11 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
                 roomLabel.innerHTML = "Room: " + roomName;
             }
         }
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", onPageReady);
+    } else {
+        onPageReady();
+    }
 })();

@@ -1,20 +1,23 @@
 /*
 Name: Naman Agrawal
 This is notifications.js. It loads the signed-in user's notifications for
-the current room, highlights unread ones, and lets the user mark them as
-read. Notifications are created by the database (for example when a
-roommate declines a payment you recorded); this page only reads them and
-marks them read through RPCs. All text is inserted with textContent so
-names and reasons are never interpreted as HTML.
+the current room and shows the unread ones highlighted. Once the list has
+been shown, everything in this room is marked as read, so the bell in the
+header stops glowing. (The highlights stay on screen until you leave the
+page, so you can still see what was new.) Notifications are created by the
+database; this page only reads them and marks them read through an RPC.
+All text is inserted with textContent so names and reasons are never
+interpreted as HTML.
 */
 window.onload = async function () {
     const currentRoomId = localStorage.getItem("currentRoomId");
     const listDiv = document.getElementById("notification-list");
-    const markAllBtn = document.getElementById("mark-all-read-btn");
 
     const typeLabels = {
+        payment_pending: "Payment Waiting for You",
         payment_declined: "Payment Declined",
         payment_confirmed: "Payment Confirmed",
+        payment_received_recorded: "Payment Recorded",
     };
 
     function formatType(type) {
@@ -36,22 +39,17 @@ window.onload = async function () {
         listDiv.appendChild(p);
     }
 
-    function refreshBadge() {
+    // authGuard.js defines refreshNotificationBadge once the session has
+    // loaded; on a very fast page load it may not exist yet, so retry briefly.
+    function refreshBadge(attempt) {
+        const tries = attempt || 0;
         if (typeof window.refreshNotificationBadge === "function") {
             window.refreshNotificationBadge();
+        } else if (tries < 10) {
+            setTimeout(function () {
+                refreshBadge(tries + 1);
+            }, 300);
         }
-    }
-
-    async function markRead(id) {
-        const { error } = await supabaseClient.rpc("mark_notification_read", {
-            notification_id_input: id,
-        });
-        if (error) {
-            console.error("Could not mark notification read:", error);
-            return;
-        }
-        await loadNotifications();
-        refreshBadge();
     }
 
     function buildEntry(n) {
@@ -78,18 +76,19 @@ window.onload = async function () {
         when.appendChild(em);
         entry.appendChild(when);
 
-        if (!n.is_read) {
-            const btn = document.createElement("button");
-            btn.className = "notification-action-btn";
-            btn.textContent = "Mark as read";
-            btn.addEventListener("click", function () {
-                btn.disabled = true;
-                markRead(n.id);
-            });
-            entry.appendChild(btn);
-        }
-
         return entry;
+    }
+
+    async function markEverythingRead() {
+        const { error } = await supabaseClient.rpc(
+            "mark_all_notifications_read",
+            { room_id_input: currentRoomId }
+        );
+        if (error) {
+            console.error("Could not mark notifications read:", error);
+            return;
+        }
+        refreshBadge();
     }
 
     async function loadNotifications() {
@@ -102,40 +101,28 @@ window.onload = async function () {
         if (error) {
             console.error("Could not load notifications:", error);
             showMessage("Something went wrong loading notifications. Try refreshing.");
-            markAllBtn.style.display = "none";
             return;
         }
 
         if (!data || data.length === 0) {
             showMessage("No notifications yet.");
-            markAllBtn.style.display = "none";
             return;
         }
-
-        const hasUnread = data.some(function (n) {
-            return !n.is_read;
-        });
-        markAllBtn.style.display = hasUnread ? "" : "none";
 
         listDiv.innerHTML = "";
+        let hasUnread = false;
         for (let i = 0; i < data.length; i++) {
             listDiv.appendChild(buildEntry(data[i]));
+            if (!data[i].is_read) {
+                hasUnread = true;
+            }
+        }
+
+        // They've now been shown, so clear the bell.
+        if (hasUnread) {
+            await markEverythingRead();
         }
     }
-
-    markAllBtn.addEventListener("click", async function () {
-        markAllBtn.disabled = true;
-        const { error } = await supabaseClient.rpc("mark_all_notifications_read", {
-            room_id_input: currentRoomId,
-        });
-        markAllBtn.disabled = false;
-        if (error) {
-            console.error("Could not mark all read:", error);
-            return;
-        }
-        await loadNotifications();
-        refreshBadge();
-    });
 
     loadNotifications();
 };
