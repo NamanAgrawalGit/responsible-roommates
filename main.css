@@ -314,12 +314,6 @@ input {
     margin-top: -5px;
 }
 
-#expense-list p {
-    color: #0c3b2e;
-    font-weight: 550;
-    text-align: center;
-}
-
 #balance-summary-mini {
     background-color: white;
     border-radius: 20px;

@@ -26,7 +26,6 @@ window.onload = async function () {
     const splitExpenseForm = document.getElementById("split-expense-form");
     const splitCostBtn = document.getElementById("split-cost-btn");
     const expenseErrorDiv = document.getElementById("expense-error");
-    const expenseListDiv = document.getElementById("expense-list");
     const balanceSummaryMiniDiv = document.getElementById("balance-summary-mini");
     const choreListDiv = document.getElementById("chore-list");
     const amountInput = document.getElementById("amount");
@@ -36,7 +35,6 @@ window.onload = async function () {
     const customSplitInputs = document.getElementById("custom-split-inputs");
     const customSplitRemaining = document.getElementById("custom-split-remaining");
 
-    const RECENT_EXPENSE_LIMIT = 3;
 
     attachCurrencyInput(amountInput);
 
@@ -232,9 +230,6 @@ window.onload = async function () {
             return;
         }
 
-        const net = summary.netTotal;
-        const netText = (net >= 0 ? "+$" : "-$") + Math.abs(net).toFixed(2);
-
         balanceSummaryMiniDiv.innerHTML =
             "<div class='mini-balance-row'><span>You owe</span><span>$" +
             summary.totalOwed.toFixed(2) +
@@ -242,65 +237,7 @@ window.onload = async function () {
             "<div class='mini-balance-row'><span>Owed to you</span><span>$" +
             summary.totalOwedToYou.toFixed(2) +
             "</span></div>" +
-            "<div class='mini-balance-row mini-balance-net'><span>Net</span><span>" +
-            netText +
-            "</span></div>" +
             link;
-    }
-
-    // Only the most recent few expenses show here — the dashboard is meant
-    // to be a quick glance, not a full ledger. Everything (all expenses,
-    // in full) lives on the Balances page.
-    async function loadExpenses() {
-        const { data, error } = await supabaseClient
-            .from("expenses")
-            .select("id, name, amount, paid_by, date, expense_splits(user_id, amount_owed, payment_status)")
-            .eq("room_id", currentRoomId)
-            .order("date", { ascending: false })
-            .limit(RECENT_EXPENSE_LIMIT);
-
-        if (error) {
-            expenseListDiv.innerHTML = "<p>Something went wrong loading expenses. Try refreshing.</p>";
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            expenseListDiv.innerHTML = "<p>No expenses added</p>";
-            return;
-        }
-
-        expenseListDiv.innerHTML = "";
-        for (let i = 0; i < data.length; i++) {
-            const expense = data[i];
-            const payerName = membersById[expense.paid_by] || "Unknown";
-
-            let splitsHtml = "";
-            for (let j = 0; j < expense.expense_splits.length; j++) {
-                const split = expense.expense_splits[j];
-                const name = membersById[split.user_id] || "Unknown";
-                splitsHtml +=
-                    name +
-                    ": $" +
-                    Number(split.amount_owed).toFixed(2) +
-                    (split.payment_status === "paid" ? " (paid)" : " (unpaid)") +
-                    "<br>";
-            }
-
-            expenseListDiv.innerHTML +=
-                "<div class='expense-entry'><h3>" +
-                expense.name +
-                " — $" +
-                Number(expense.amount).toFixed(2) +
-                "</h3>" +
-                "<p>Paid by: " +
-                payerName +
-                "</p><p>" +
-                splitsHtml +
-                "</p></div>";
-        }
-
-        expenseListDiv.innerHTML +=
-            "<a href='balances.html' class='balance-link'>View all expenses &rarr;</a>";
     }
 
     async function loadChoresPreview() {
@@ -453,7 +390,6 @@ window.onload = async function () {
         expenseFormOpen = false;
         splitExpenseExpand.innerHTML = "+ Split an Expense";
 
-        loadExpenses();
         loadBalanceSummary();
     });
 
@@ -467,12 +403,10 @@ window.onload = async function () {
             "postgres_changes",
             { event: "*", schema: "public", table: "expenses", filter: "room_id=eq." + currentRoomId },
             function () {
-                loadExpenses();
                 loadBalanceSummary();
             }
         )
         .on("postgres_changes", { event: "*", schema: "public", table: "expense_splits" }, function () {
-            loadExpenses();
             loadBalanceSummary();
         })
         .on(
@@ -493,6 +427,5 @@ window.onload = async function () {
 
     await loadMembers();
     await loadBalanceSummary();
-    await loadExpenses();
     await loadChoresPreview();
 };
