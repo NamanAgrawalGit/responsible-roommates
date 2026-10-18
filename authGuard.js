@@ -32,7 +32,44 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
         }
     });
 
+    // Shows the number of unread notifications (for the current room) next
+    // to the "Notifications" nav link. Fails quietly: a badge problem should
+    // never break the page.
+    async function updateNotificationBadge() {
+        const link = document.getElementById("notifications-link");
+        const roomId = localStorage.getItem("currentRoomId");
+        if (!link || !roomId) {
+            return;
+        }
+
+        const { count, error } = await supabaseClient
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", session.user.id)
+            .eq("room_id", roomId)
+            .eq("is_read", false);
+
+        let badge = document.getElementById("notifications-badge");
+        if (error || !count) {
+            if (badge) {
+                badge.remove();
+            }
+            return;
+        }
+
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.id = "notifications-badge";
+            badge.className = "nav-badge";
+            link.appendChild(badge);
+        }
+        badge.textContent = count > 99 ? "99+" : String(count);
+    }
+    window.refreshNotificationBadge = updateNotificationBadge;
+
     document.addEventListener("DOMContentLoaded", function () {
+        updateNotificationBadge();
+
         const logoutBtn = document.getElementById("logout-btn");
         if (logoutBtn) {
             logoutBtn.addEventListener("click", async function (e) {

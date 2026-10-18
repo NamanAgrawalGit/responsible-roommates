@@ -935,3 +935,60 @@ input {
 .hidden {
     display: none;
 }
+
+/* ---------- Notifications ---------- */
+.notification-entry {
+    background-color: white;
+    border-radius: 20px;
+    padding: 12px;
+    margin-bottom: 10px;
+    color: #0c3b2e;
+}
+
+.notification-entry.unread {
+    border-left: 6px solid #0c3b2e;
+}
+
+.notification-entry h3 {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    color: black;
+}
+
+.notification-entry p {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.new-tag {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: #0c3b2e;
+    color: white;
+    font-size: 0.7em;
+    vertical-align: middle;
+}
+
+.notification-action-btn {
+    background-color: #0c3b2e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.nav-badge {
+    display: inline-block;
+    margin-left: 6px;
+    min-width: 18px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background-color: #c0392b;
+    color: white;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-align: center;
+}
