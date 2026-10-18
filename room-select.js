@@ -38,6 +38,28 @@ window.onload = async function () {
         window.location.href = "index.html";
     }
 
+    // Shows a join result using textContent so room names and server
+    // messages are never interpreted as HTML. If an "enter room" target
+    // is given, adds a button to go straight into that room.
+    function showJoinMessage(message, isInfo, roomId, roomName) {
+        joinError.innerHTML = "";
+        const p = document.createElement("p");
+        p.textContent = message;
+        if (isInfo) {
+            p.className = "info-message";
+        }
+        joinError.appendChild(p);
+
+        if (roomId) {
+            const btn = document.createElement("button");
+            btn.textContent = "Enter Room";
+            btn.addEventListener("click", function () {
+                enterRoom(roomId, roomName);
+            });
+            joinError.appendChild(btn);
+        }
+    }
+
     async function loadRooms() {
         roomListDiv.innerHTML = "<p>Loading your rooms...</p>";
 
@@ -148,12 +170,22 @@ window.onload = async function () {
         joinBtn.disabled = false;
 
         if (error) {
-            joinError.innerHTML = "<p>" + error.message + "</p>";
+            showJoinMessage(error.message, false);
             return;
         }
 
         if (!data || data.length === 0) {
-            joinError.innerHTML = "<p>That room code wasn't found.</p>";
+            showJoinMessage("That room code wasn't found.", false);
+            return;
+        }
+
+        if (data[0].already_member) {
+            showJoinMessage(
+                "You're already part of \"" + data[0].name + "\".",
+                true,
+                data[0].id,
+                data[0].name
+            );
             return;
         }
 
