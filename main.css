@@ -333,6 +333,18 @@ input {
     padding: 4px 0;
 }
 
+.mini-balance-net {
+    border-top: 1px solid #d9e2dc;
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+.mini-settled {
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 0;
+}
+
 .balance-link {
     display: block;
     text-align: center;

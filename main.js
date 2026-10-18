@@ -213,70 +213,39 @@ window.onload = async function () {
     }
 
     async function loadBalanceSummary() {
-        const { data, error } = await supabaseClient
-            .from("expenses")
-            .select("paid_by, expense_splits(user_id, amount_owed, payment_status)")
-            .eq("room_id", currentRoomId);
+        // Same shared calculation the Balances page uses (balanceCalc.js),
+        // so the two can never disagree.
+        const result = await loadNetBalances(currentRoomId, user.id);
 
-        if (error) {
+        if (result.error) {
             balanceSummaryMiniDiv.innerHTML = "<p>Could not load balance.</p>";
             return;
         }
 
-        let totalOwed = 0;
-        let totalOwedToYou = 0;
+        const summary = summarizeBalances(result.netCents);
+        const link = "<a href='balances.html' class='balance-link'>View full balances &rarr;</a>";
 
-        for (let i = 0; i < data.length; i++) {
-            const expense = data[i];
-            for (let j = 0; j < expense.expense_splits.length; j++) {
-                const split = expense.expense_splits[j];
-
-                if (split.payment_status === "paid" || split.user_id === expense.paid_by) {
-                    continue;
-                }
-
-                const amount = Number(split.amount_owed);
-
-                if (split.user_id === user.id) {
-                    totalOwed += amount;
-                } else if (expense.paid_by === user.id) {
-                    totalOwedToYou += amount;
-                }
-            }
+        if (summary.settled) {
+            balanceSummaryMiniDiv.innerHTML =
+                "<div class='mini-settled'>\u2705 All settled up! Nobody owes anything.</div>" +
+                link;
+            return;
         }
 
-        // Confirmed payments reduce these totals directly. This is an
-        // aggregate approximation for the mini dashboard summary — the
-        // full pairwise version (with per-person "I Paid This" /
-        // "They Paid Me" buttons) lives on balances.js.
-        const { data: paymentData } = await supabaseClient
-            .from("payments")
-            .select("payer_id, recipient_id, amount")
-            .eq("room_id", currentRoomId)
-            .eq("status", "confirmed");
-
-        if (paymentData) {
-            for (let i = 0; i < paymentData.length; i++) {
-                const payment = paymentData[i];
-                const amount = Number(payment.amount);
-                if (payment.payer_id === user.id) {
-                    totalOwed -= amount;
-                } else if (payment.recipient_id === user.id) {
-                    totalOwedToYou -= amount;
-                }
-            }
-            totalOwed = Math.max(0, totalOwed);
-            totalOwedToYou = Math.max(0, totalOwedToYou);
-        }
+        const net = summary.netTotal;
+        const netText = (net >= 0 ? "+$" : "-$") + Math.abs(net).toFixed(2);
 
         balanceSummaryMiniDiv.innerHTML =
             "<div class='mini-balance-row'><span>You owe</span><span>$" +
-            totalOwed.toFixed(2) +
+            summary.totalOwed.toFixed(2) +
             "</span></div>" +
             "<div class='mini-balance-row'><span>Owed to you</span><span>$" +
-            totalOwedToYou.toFixed(2) +
+            summary.totalOwedToYou.toFixed(2) +
             "</span></div>" +
-            "<a href='balances.html' class='balance-link'>View full balances &rarr;</a>";
+            "<div class='mini-balance-row mini-balance-net'><span>Net</span><span>" +
+            netText +
+            "</span></div>" +
+            link;
     }
 
     // Only the most recent few expenses show here — the dashboard is meant

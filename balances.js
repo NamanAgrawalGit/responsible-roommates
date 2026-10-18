@@ -210,104 +210,32 @@ window.onload = async function () {
     }
 
     async function loadBalances() {
-        const { data: expenses, error } = await supabaseClient
-            .from("expenses")
-            .select(
-                "id, paid_by, expense_splits(user_id, amount_owed, payment_status)"
-            )
-            .eq("room_id", currentRoomId);
+        // The calculation lives in balanceCalc.js so the dashboard and this
+        // page always agree.
+        const result = await loadNetBalances(currentRoomId, user.id);
 
-        if (error) {
-            console.error("Could not load expenses for balances:", error);
+        if (result.error) {
             balanceSummaryDiv.textContent =
-                "Something went wrong loading expenses.";
+                "Something went wrong loading balances. Please refresh.";
             return;
         }
 
-        // A positive net amount means the other person owes the current user.
-        // A negative net amount means the current user owes the other person.
-        const net = {};
+        const summary = summarizeBalances(result.netCents);
 
-        for (let i = 0; i < expenses.length; i++) {
-            const expense = expenses[i];
-            const payer = expense.paid_by;
-
-            for (let j = 0; j < expense.expense_splits.length; j++) {
-                const split = expense.expense_splits[j];
-
-                if (
-                    split.payment_status === "paid" ||
-                    split.user_id === payer
-                ) {
-                    continue;
-                }
-
-                const amount = Number(split.amount_owed);
-
-                if (split.user_id === user.id) {
-                    net[payer] = (net[payer] || 0) - amount;
-                } else if (payer === user.id) {
-                    net[split.user_id] =
-                        (net[split.user_id] || 0) + amount;
-                }
-            }
-        }
-
-        // Apply confirmed payments to the balance calculation.
-        const { data: payments, error: paymentsError } =
-            await supabaseClient
-                .from("payments")
-                .select("payer_id, recipient_id, amount")
-                .eq("room_id", currentRoomId)
-                .eq("status", "confirmed");
-
-        if (paymentsError) {
-            console.error(
-                "Could not load confirmed payments:",
-                paymentsError
-            );
-
-            balanceSummaryDiv.textContent =
-                "Something went wrong loading confirmed payments. Please refresh.";
-            return;
-        }
-
-        if (payments) {
-            for (let i = 0; i < payments.length; i++) {
-                const payment = payments[i];
-                const amount = Number(payment.amount);
-
-                if (payment.payer_id === user.id) {
-                    net[payment.recipient_id] =
-                        (net[payment.recipient_id] || 0) + amount;
-                } else if (payment.recipient_id === user.id) {
-                    net[payment.payer_id] =
-                        (net[payment.payer_id] || 0) - amount;
-                }
-            }
-        }
-
-        const owesEntries = [];
-        const owedEntries = [];
-
-        for (const otherId in net) {
-            const amount = net[otherId];
-            const name = namesById[otherId] || "Unknown";
-
-            if (amount > 0.004) {
-                owedEntries.push({
-                    name: name,
-                    amount: amount,
-                    id: otherId,
-                });
-            } else if (amount < -0.004) {
-                owesEntries.push({
-                    name: name,
-                    amount: -amount,
-                    id: otherId,
-                });
-            }
-        }
+        const owesEntries = summary.owes.map(function (entry) {
+            return {
+                name: namesById[entry.id] || "Unknown",
+                amount: entry.amount,
+                id: entry.id,
+            };
+        });
+        const owedEntries = summary.owed.map(function (entry) {
+            return {
+                name: namesById[entry.id] || "Unknown",
+                amount: entry.amount,
+                id: entry.id,
+            };
+        });
 
         // Render the "You Owe" section.
         if (owesEntries.length === 0) {
@@ -341,26 +269,21 @@ window.onload = async function () {
 
         wireMarkPaidButtons();
 
-        const totalOwed = owesEntries.reduce(function (sum, entry) {
-            return sum + entry.amount;
-        }, 0);
+        const totalOwed = summary.totalOwed;
+        const totalOwedToYou = summary.totalOwedToYou;
+        const netTotal = summary.netTotal;
 
-        const totalOwedToYou = owedEntries.reduce(function (sum, entry) {
-            return sum + entry.amount;
-        }, 0);
-
-        const netTotal = totalOwedToYou - totalOwed;
-
-        balanceSummaryDiv.innerHTML =
-            "<p>You owe a total of $" +
-            totalOwed.toFixed(2) +
-            "</p><p>You are owed a total of $" +
-            totalOwedToYou.toFixed(2) +
-            "</p><p><strong>Net: " +
-            (netTotal >= 0
-                ? "+$" + netTotal.toFixed(2)
-                : "-$" + Math.abs(netTotal).toFixed(2)) +
-            "</strong></p>";
+        balanceSummaryDiv.innerHTML = summary.settled
+            ? "<p><strong>\u2705 All settled up. Nobody owes anything right now.</strong></p>"
+            : "<p>You owe a total of $" +
+              totalOwed.toFixed(2) +
+              "</p><p>You are owed a total of $" +
+              totalOwedToYou.toFixed(2) +
+              "</p><p><strong>Net: " +
+              (netTotal >= 0
+                  ? "+$" + netTotal.toFixed(2)
+                  : "-$" + Math.abs(netTotal).toFixed(2)) +
+              "</strong></p>";
     }
 
     async function loadPendingPayments() {
