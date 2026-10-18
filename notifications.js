@@ -6,8 +6,10 @@ been shown, everything in this room is marked as read, so the bell in the
 header stops glowing. (The highlights stay on screen until you leave the
 page, so you can still see what was new.) Notifications are created by the
 database; this page only reads them and marks them read through an RPC.
-All text is inserted with textContent so names and reasons are never
-interpreted as HTML.
+Join-request notifications (room owners only) also get Approve / Deny
+buttons, which call the approve_join_request / deny_join_request RPCs; the
+database checks that the caller really owns the room. All text is inserted
+with textContent so names and reasons are never interpreted as HTML.
 */
 window.onload = async function () {
     const currentRoomId = localStorage.getItem("currentRoomId");
@@ -18,6 +20,7 @@ window.onload = async function () {
         payment_declined: "Payment Declined",
         payment_confirmed: "Payment Confirmed",
         payment_received_recorded: "Payment Recorded",
+        join_request: "Join Request",
     };
 
     function formatType(type) {
@@ -52,7 +55,7 @@ window.onload = async function () {
         }
     }
 
-    function buildEntry(n) {
+    function buildEntry(n, requestStatus) {
         const entry = document.createElement("div");
         entry.className = "notification-entry" + (n.is_read ? "" : " unread");
 
@@ -76,7 +79,65 @@ window.onload = async function () {
         when.appendChild(em);
         entry.appendChild(when);
 
+        if (n.type === "join_request") {
+            appendJoinRequestControls(entry, n, requestStatus);
+        }
+
         return entry;
+    }
+
+    // Approve / Deny buttons while the request is pending; otherwise show how
+    // it was resolved.
+    function appendJoinRequestControls(entry, n, requestStatus) {
+        if (requestStatus === "pending") {
+            const actions = document.createElement("div");
+            actions.className = "notification-actions";
+
+            const approveBtn = document.createElement("button");
+            approveBtn.className = "approve-btn";
+            approveBtn.textContent = "Approve";
+
+            const denyBtn = document.createElement("button");
+            denyBtn.className = "deny-btn";
+            denyBtn.textContent = "Deny";
+
+            approveBtn.addEventListener("click", function () {
+                decideRequest(n.related_id, "approve_join_request", [approveBtn, denyBtn]);
+            });
+            denyBtn.addEventListener("click", function () {
+                decideRequest(n.related_id, "deny_join_request", [approveBtn, denyBtn]);
+            });
+
+            actions.appendChild(approveBtn);
+            actions.appendChild(denyBtn);
+            entry.appendChild(actions);
+        } else if (requestStatus === "approved" || requestStatus === "denied") {
+            const result = document.createElement("p");
+            result.className = "request-status";
+            result.textContent =
+                requestStatus === "approved" ? "\u2705 Approved" : "\u274c Denied";
+            entry.appendChild(result);
+        }
+    }
+
+    async function decideRequest(requestId, rpcName, buttons) {
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = true;
+        }
+
+        const { error } = await supabaseClient.rpc(rpcName, {
+            request_id_input: requestId,
+        });
+
+        if (error) {
+            console.error("Could not update join request:", error);
+            window.alert(error.message || "Could not update this request.");
+            // The request may have been handled already; reload to show the truth.
+            await loadNotifications();
+            return;
+        }
+
+        await loadNotifications();
     }
 
     async function markEverythingRead() {
@@ -94,7 +155,7 @@ window.onload = async function () {
     async function loadNotifications() {
         const { data, error } = await supabaseClient
             .from("notifications")
-            .select("id, type, message, is_read, created_at")
+            .select("id, type, message, is_read, created_at, related_id")
             .eq("room_id", currentRoomId)
             .order("created_at", { ascending: false });
 
@@ -109,10 +170,36 @@ window.onload = async function () {
             return;
         }
 
+        // Look up the current status of any join requests in the list.
+        const requestIds = [];
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].type === "join_request" && data[i].related_id) {
+                requestIds.push(data[i].related_id);
+            }
+        }
+
+        const requestStatuses = {};
+        if (requestIds.length > 0) {
+            const { data: requests, error: requestsError } = await supabaseClient
+                .from("room_join_requests")
+                .select("id, status")
+                .in("id", requestIds);
+
+            if (requestsError) {
+                console.error("Could not load join requests:", requestsError);
+            } else {
+                for (let i = 0; i < requests.length; i++) {
+                    requestStatuses[requests[i].id] = requests[i].status;
+                }
+            }
+        }
+
         listDiv.innerHTML = "";
         let hasUnread = false;
         for (let i = 0; i < data.length; i++) {
-            listDiv.appendChild(buildEntry(data[i]));
+            listDiv.appendChild(
+                buildEntry(data[i], requestStatuses[data[i].related_id])
+            );
             if (!data[i].is_read) {
                 hasUnread = true;
             }

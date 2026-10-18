@@ -31,6 +31,7 @@ window.onload = async function () {
     const joinCodeInput = document.getElementById("join-room-code");
     const joinBtn = document.getElementById("join-room-btn");
     const joinError = document.getElementById("join-room-error");
+    const myRequestsDiv = document.getElementById("my-join-requests");
 
     function enterRoom(roomId, roomName) {
         localStorage.setItem("currentRoomId", roomId);
@@ -60,8 +61,62 @@ window.onload = async function () {
         }
     }
 
-    async function loadRooms() {
-        roomListDiv.innerHTML = "<p>Loading your rooms...</p>";
+    function showRoomListMessage(text) {
+        roomListDiv.innerHTML = "";
+        const p = document.createElement("p");
+        p.textContent = text;
+        roomListDiv.appendChild(p);
+    }
+
+    function buildRoomEntry(membership, room, pendingCount) {
+        const roomDiv = document.createElement("div");
+        roomDiv.className = "room-entry";
+
+        const title = document.createElement("h3");
+        title.textContent = room.name;
+        roomDiv.appendChild(title);
+
+        const status = document.createElement("p");
+        status.textContent = "Status: " + room.status;
+        roomDiv.appendChild(status);
+
+        if (membership.role === "owner") {
+            const code = document.createElement("p");
+            code.appendChild(document.createTextNode("Invite code: "));
+            const strong = document.createElement("strong");
+            strong.textContent = room.invite_code;
+            code.appendChild(strong);
+            roomDiv.appendChild(code);
+
+            if (pendingCount > 0) {
+                const note = document.createElement("p");
+                note.className = "pending-note";
+                note.textContent =
+                    "\u23f3 " +
+                    pendingCount +
+                    (pendingCount === 1
+                        ? " person is waiting to join."
+                        : " people are waiting to join.") +
+                    " Enter the room and open the bell to review.";
+                roomDiv.appendChild(note);
+            }
+        }
+
+        const btn = document.createElement("button");
+        btn.className = "enter-room-btn";
+        btn.textContent = "Enter Room";
+        btn.addEventListener("click", function () {
+            enterRoom(room.id, room.name);
+        });
+        roomDiv.appendChild(btn);
+
+        return roomDiv;
+    }
+
+    async function loadRooms(silent) {
+        if (!silent) {
+            showRoomListMessage("Loading your rooms...");
+        }
 
         const { data, error } = await supabaseClient
             .from("room_members")
@@ -70,14 +125,41 @@ window.onload = async function () {
             .eq("is_active", true);
 
         if (error) {
-            roomListDiv.innerHTML = "<p>Something went wrong loading your rooms. Try refreshing.</p>";
+            showRoomListMessage("Something went wrong loading your rooms. Try refreshing.");
             return;
         }
 
         if (!data || data.length === 0) {
-            roomListDiv.innerHTML =
-                "<p>You're not in any rooms yet. Create one or join with a code below.</p>";
+            showRoomListMessage(
+                "You're not in any rooms yet. Create one or join with a code below."
+            );
             return;
+        }
+
+        // How many join requests are waiting on rooms I own?
+        const ownedRoomIds = [];
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].role === "owner" && data[i].rooms) {
+                ownedRoomIds.push(data[i].rooms.id);
+            }
+        }
+
+        const pendingCounts = {};
+        if (ownedRoomIds.length > 0) {
+            const { data: pending, error: pendingError } = await supabaseClient
+                .from("room_join_requests")
+                .select("room_id")
+                .eq("status", "pending")
+                .in("room_id", ownedRoomIds);
+
+            if (pendingError) {
+                console.error("Could not load join requests:", pendingError);
+            } else {
+                for (let i = 0; i < pending.length; i++) {
+                    pendingCounts[pending[i].room_id] =
+                        (pendingCounts[pending[i].room_id] || 0) + 1;
+                }
+            }
         }
 
         roomListDiv.innerHTML = "";
@@ -87,32 +169,47 @@ window.onload = async function () {
             if (!room) {
                 continue;
             }
+            roomListDiv.appendChild(
+                buildRoomEntry(membership, room, pendingCounts[room.id] || 0)
+            );
+        }
+    }
 
-            const roomDiv = document.createElement("div");
-            roomDiv.className = "room-entry";
-            roomDiv.innerHTML =
-                "<h3>" +
-                room.name +
-                "</h3>" +
-                "<p>Status: " +
-                room.status +
-                "</p>" +
-                (membership.role === "owner"
-                    ? "<p>Invite code: <strong>" + room.invite_code + "</strong></p>"
-                    : "") +
-                "<button class='enter-room-btn' data-id='" +
-                room.id +
-                "' data-name='" +
-                room.name +
-                "'>Enter Room</button>";
-            roomListDiv.appendChild(roomDiv);
+    // Rooms I've asked to join and am still waiting on (or was denied for).
+    async function loadMyRequests() {
+        const { data, error } = await supabaseClient.rpc("my_join_requests");
+
+        if (error) {
+            console.error("Could not load your join requests:", error);
+            return;
         }
 
-        const enterButtons = document.getElementsByClassName("enter-room-btn");
-        for (let i = 0; i < enterButtons.length; i++) {
-            enterButtons[i].addEventListener("click", function () {
-                enterRoom(this.getAttribute("data-id"), this.getAttribute("data-name"));
-            });
+        myRequestsDiv.innerHTML = "";
+        if (!data || data.length === 0) {
+            return;
+        }
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Your Join Requests";
+        myRequestsDiv.appendChild(heading);
+
+        for (let i = 0; i < data.length; i++) {
+            const entry = document.createElement("div");
+            entry.className = "join-request-entry";
+            const p = document.createElement("p");
+            if (data[i].request_status === "pending") {
+                p.textContent =
+                    "\u23f3 Waiting for the owner of \"" +
+                    data[i].room_name +
+                    "\" to approve your request.";
+            } else {
+                p.textContent =
+                    "\u274c The owner of \"" +
+                    data[i].room_name +
+                    "\" denied your request.";
+            }
+            entry.appendChild(p);
+            myRequestsDiv.appendChild(entry);
         }
     }
 
@@ -144,7 +241,10 @@ window.onload = async function () {
         createBtn.disabled = false;
 
         if (error) {
-            createError.innerHTML = "<p>" + error.message + "</p>";
+            createError.innerHTML = "";
+            const errP = document.createElement("p");
+            errP.textContent = error.message;
+            createError.appendChild(errP);
             return;
         }
 
@@ -189,8 +289,28 @@ window.onload = async function () {
             return;
         }
 
+        if (data[0].request_pending) {
+            joinCodeInput.value = "";
+            showJoinMessage(
+                "Request sent! The owner of \"" +
+                    data[0].name +
+                    "\" needs to approve it before you can enter.",
+                true
+            );
+            loadMyRequests();
+            return;
+        }
+
         enterRoom(data[0].id, data[0].name);
     });
 
     loadRooms();
+    loadMyRequests();
+
+    // Check again every 30 seconds so an approved room shows up (and owners
+    // see new requests) without a manual refresh.
+    setInterval(function () {
+        loadRooms(true);
+        loadMyRequests();
+    }, 30000);
 };
