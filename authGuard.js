@@ -88,6 +88,26 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
     function onPageReady() {
         updateNotificationBadge();
 
+        const notificationsLink = document.getElementById("notifications-link");
+        const userMetadata = session.user.user_metadata || {};
+        const userName =
+            userMetadata.name || userMetadata.full_name || session.user.email;
+        if (notificationsLink && userName) {
+            const userNameLabel = document.createElement("span");
+            userNameLabel.className = "header-user-name";
+            userNameLabel.textContent = userName;
+            userNameLabel.title = userName;
+
+            const header = notificationsLink.closest("header");
+            if (header) {
+                const referenceNode =
+                    notificationsLink.parentNode === header
+                        ? notificationsLink
+                        : header.firstChild;
+                header.insertBefore(userNameLabel, referenceNode);
+            }
+        }
+
         const logoutBtn = document.getElementById("logout-btn");
         if (logoutBtn) {
             logoutBtn.addEventListener("click", async function (e) {
