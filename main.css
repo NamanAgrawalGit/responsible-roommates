@@ -325,6 +325,7 @@ header h1::before {
 .header-user-name {
     grid-area: user;
     justify-self: end;
+    align-self: center;
     color: var(--muted-foreground);
     font-size: 0.85rem;
     font-weight: 500;
@@ -399,6 +400,8 @@ header nav a#logout-btn:hover {
 header a.bell-link,
 header a.bell-link.active {
     grid-area: bell;
+    justify-self: end;
+    align-self: center;
     position: relative;
     width: 40px;
     height: 40px;
@@ -420,9 +423,9 @@ header a.bell-link:hover {
 }
 
 header a.bell-link.active {
-    background-color: var(--sidebar-primary);
-    border-color: var(--sidebar-primary);
-    color: var(--sidebar-primary-foreground);
+    background-color: var(--card);
+    border-color: var(--border);
+    color: var(--sidebar-foreground);
 }
 
 header a.bell-link svg {
