@@ -1,11 +1,228 @@
 /*
 Name: Naman Agrawal
 This is the css file that styles the responsible roommate app.
+
+Visual theme: "Forest Copper" (21st.dev, serafimcloud). The theme is a set of
+CSS variables (colors, radius, fonts, shadow) defined in the THEME TOKENS
+section below; every other rule in this file uses those variables instead of
+hard-coded colors, so changing the look means changing the tokens.
+
+Dark mode follows the visitor's system setting (prefers-color-scheme).
+Adding data-theme="light" or data-theme="dark" to the <html> element forces
+one or the other, which is how a future manual toggle would work.
 */
+
+/* ==========================================================================
+   THEME TOKENS
+   ========================================================================== */
+
+:root {
+  --card: #f2f2f2;
+  --ring: #367d50;
+  --input: #e3e8e5;
+  --muted: #e7eee7;
+  --accent: #d5ddd8;
+  --border: #d1d1d1;
+  --radius: 0.625rem;
+  --chart-1: #367d50;
+  --chart-2: #a17045;
+  --chart-3: #a14545;
+  --chart-4: #5c8a6d;
+  --chart-5: #8aa895;
+  --popover: #ededed;
+  --primary: #367d50;
+  --sidebar: #e2e9e4;
+  --spacing: 0.25rem;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
+  --secondary: #a17045;
+  --background: #f0f4f2;
+  --font-serif: Georgia, serif;
+  --foreground: #1f2e24;
+  --destructive: #a14545;
+  --shadow-blur: 20px;
+  --shadow-color: #000000;
+  --sidebar-ring: #367d50;
+  --shadow-spread: 0px;
+  --letter-spacing: 0em;
+  --shadow-opacity: 0.05;
+  --sidebar-accent: #d5ddd8;
+  --sidebar-border: #c7d1cb;
+  --card-foreground: #141f18;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --sidebar-primary: #367d50;
+  --muted-foreground: #4c6756;
+  --accent-foreground: #1f2e24;
+  --popover-foreground: #141f18;
+  --primary-foreground: #f9fafa;
+  --sidebar-foreground: #293d30;
+  --secondary-foreground: #fafaf9;
+  --destructive-foreground: #fafafa;
+  --sidebar-accent-foreground: #1f2e24;
+  --sidebar-primary-foreground: #f9fafa;
+
+  /* App text colors: darker/lighter variants of the theme colors so small
+     text stays readable (WCAG AA, 4.5:1) on cards and panels. */
+  --text-primary: color-mix(in srgb, var(--primary) 82%, #000);
+  --text-danger: var(--destructive);
+  --text-copper: color-mix(in srgb, var(--secondary) 80%, #000);
+  color-scheme: light;
+
+  /* Derived from the tokens above */
+  --radius-lg: calc(var(--radius) * 1.6);
+  --shadow-card: var(--shadow-offset-x) var(--shadow-offset-y)
+    var(--shadow-blur) var(--shadow-spread) rgb(0 0 0 / var(--shadow-opacity));
+  --tint-primary: color-mix(in srgb, var(--primary) 14%, var(--card));
+  --tint-copper: color-mix(in srgb, var(--secondary) 16%, var(--card));
+  --tint-danger: color-mix(in srgb, var(--destructive) 14%, var(--card));
+}
+
+/* Dark: follows the system setting unless the page is forced to light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --card: #100d08;
+    --ring: #45a167;
+    --input: #1a150e;
+    --muted: #1e1a14;
+    --accent: #222a25;
+    --border: #2f281b;
+    --radius: 0.625rem;
+    --chart-1: #45a167;
+    --chart-2: #ac6f39;
+    --chart-3: #ac3939;
+    --chart-4: #6aaf83;
+    --chart-5: #476b54;
+    --popover: #0b0905;
+    --primary: #45a167;
+    --sidebar: #211a12;
+    --spacing: 0.25rem;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
+    --secondary: #81542c;
+    --background: #070503;
+    --font-serif: Georgia, serif;
+    --foreground: #d6d6d6;
+    --destructive: #ac3939;
+    --shadow-blur: 20px;
+    --shadow-color: #1a1a1a;
+    --sidebar-ring: #45a167;
+    --shadow-spread: 0px;
+    --letter-spacing: 0em;
+    --shadow-opacity: 0.05;
+    --sidebar-accent: #495940;
+    --sidebar-border: #272117;
+    --card-foreground: #dee3e0;
+    --shadow-offset-x: 0px;
+    --shadow-offset-y: 8px;
+    --sidebar-primary: #45a167;
+    --muted-foreground: #928f8a;
+    --accent-foreground: #cbe6d5;
+    --popover-foreground: #cbe6d5;
+    --primary-foreground: #040302;
+    --sidebar-foreground: #f0eeeb;
+    --secondary-foreground: #d9d9d9;
+    --destructive-foreground: #fafafa;
+    --sidebar-accent-foreground: #fff;
+    --sidebar-primary-foreground: #040302;
+
+    --text-primary: var(--primary);
+    --text-danger: color-mix(in srgb, var(--destructive) 65%, #fff);
+    --text-copper: color-mix(in srgb, var(--secondary) 65%, #fff);
+    color-scheme: dark;
+  }
+}
+
+/* Dark: forced on with data-theme="dark" (same values as above). */
+:root[data-theme="dark"] {
+  --card: #100d08;
+  --ring: #45a167;
+  --input: #1a150e;
+  --muted: #1e1a14;
+  --accent: #222a25;
+  --border: #2f281b;
+  --radius: 0.625rem;
+  --chart-1: #45a167;
+  --chart-2: #ac6f39;
+  --chart-3: #ac3939;
+  --chart-4: #6aaf83;
+  --chart-5: #476b54;
+  --popover: #0b0905;
+  --primary: #45a167;
+  --sidebar: #211a12;
+  --spacing: 0.25rem;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
+  --secondary: #81542c;
+  --background: #070503;
+  --font-serif: Georgia, serif;
+  --foreground: #d6d6d6;
+  --destructive: #ac3939;
+  --shadow-blur: 20px;
+  --shadow-color: #1a1a1a;
+  --sidebar-ring: #45a167;
+  --shadow-spread: 0px;
+  --letter-spacing: 0em;
+  --shadow-opacity: 0.05;
+  --sidebar-accent: #495940;
+  --sidebar-border: #272117;
+  --card-foreground: #dee3e0;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 8px;
+  --sidebar-primary: #45a167;
+  --muted-foreground: #928f8a;
+  --accent-foreground: #cbe6d5;
+  --popover-foreground: #cbe6d5;
+  --primary-foreground: #040302;
+  --sidebar-foreground: #f0eeeb;
+  --secondary-foreground: #d9d9d9;
+  --destructive-foreground: #fafafa;
+  --sidebar-accent-foreground: #fff;
+  --sidebar-primary-foreground: #040302;
+
+  --text-primary: var(--primary);
+  --text-danger: color-mix(in srgb, var(--destructive) 65%, #fff);
+  --text-copper: color-mix(in srgb, var(--secondary) 65%, #fff);
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+    letter-spacing: var(--letter-spacing);
+    line-height: 1.5;
+    background-color: var(--background);
+    color: var(--foreground);
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+    line-height: 1.25;
+}
+
+a {
+    color: var(--text-primary);
+}
+
+:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
 
 main {
     max-width: 900px;
     margin: 0 auto;
+    padding: 20px 16px 8px;
 }
 
 .main-page {
@@ -13,982 +230,176 @@ main {
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 16px;
 }
 
 .main-page .chores {
     grid-column: 1 / 3;
 }
 
-body {
-    font-family: "PT Serif Caption", serif;
-    background-color: #0c3b2e;
-    color: white;
-    margin: 0 auto;
-}
-
-header {
-    background-color: white;
-    padding: 15px;
-    text-align: center;
-    position: relative;
-}
-
-#logo {
-    padding: 0 48px; /* keeps the title clear of the corner bell */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-}
-
-header h1 {
-    color: #0c3b2e;
-    margin: 0 0 10px 0;
-    font-size: 24px;
-}
-
-header a {
-    display: block;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    background-color: #0c3b2e;
-    border-radius: 30px;
-    padding: 10px 5px;
-    text-align: center;
-}
-
-header li {
-    flex: 1;
-}
-
-.header-user-name {
-    color: #0c3b2e;
-    font-size: 13px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-header a.active {
-    background-color: #0c3b2e;
-    color: white;
-    text-decoration: underline;
-}
-
-header ul {
-    list-style: none;
-    margin: 0 auto;
-    padding: 15px 0px 0px 0px;
-    display: flex;
-    gap: 5px;
-    max-width: 700px;
-}
-
-.roommates {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-#roommate-label {
-    display: none;
-}
-
-.display-roommates h2 {
-    color: #0c3b2e;
-    margin-top: 0px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.display-roommates h3 {
-    color: #0c3b2e;
-}
-
-.room-head {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-#roommate-count {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    gap: 3px;
-}
-
-#roommate-count img {
-    width: 30px;
-    height: auto;
-}
-
-#roommate-count h3 {
-    margin: 0;
-    color: #0c3b2e;
-}
-
-#roommate-list p {
-    color: #0c3b2e;
-    font-weight: 500;
-    margin: 0px;
-}
-
-#invite-info {
-    color: #0c3b2e;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 10px;
-}
-
-#invite-info strong {
-    background-color: white;
-    padding: 3px 8px;
-    border-radius: 8px;
-}
-
-/* ---------- Balances page ---------- */
-
-.balances {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 20px;
-    margin: 20px 10px;
-    color: #0c3b2e;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.balances h2 {
-    text-align: center;
-    margin-top: 0;
-}
-
-#balance-summary {
-    background-color: white;
-    border-radius: 20px;
-    padding: 15px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.balance-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.balance-column {
-    background-color: white;
-    border-radius: 20px;
-    padding: 15px;
-}
-
-.balance-column h3 {
-    margin-top: 0;
-    text-align: center;
-}
-
-.balance-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    font-weight: bold;
-}
-
-.balance-row-wrapper {
-    border-bottom: 1px solid #eee;
-    margin-bottom: 4px;
-    padding-bottom: 6px;
-}
-
-.balance-row-wrapper .balance-row {
-    border-bottom: none;
-    padding-bottom: 2px;
-}
-
-.balance-note {
-    text-align: center;
-    font-style: italic;
-    font-size: 14px;
-    margin-top: 20px;
-    margin-bottom: 0;
-}
-
-.all-expenses {
-    max-width: 700px;
-    background-color: #fffdd0;
-    border-radius: 30px;
-    padding: 20px;
-    margin: 20px auto;
-    color: #0c3b2e;
-}
-
-.all-expenses h2 {
-    text-align: center;
-    margin-top: 0;
-}
-
-/* ---------- Custom split inputs (expense form) ---------- */
-
-.custom-split-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-
-.custom-split-row input {
-    max-width: 100px;
-}
-
-#custom-split-remaining {
-    font-weight: bold;
-    text-align: right;
-    margin-top: 6px;
-}
-
-@media (max-width: 600px) {
-    .balance-columns {
-        grid-template-columns: 1fr;
-    }
-}
-
-.add-roommate {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-input {
-    flex: 1;
-    padding: 8px 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-size: 15px;
-    box-sizing: border-box;
-    max-width: 100%;
-}
-
-#roommate-error {
-    color: #ff4d4f;
-    font-weight: bold;
-    margin-top: 4px;
-    margin-left: 5px;
-}
-
-#add-roommate-btn {
-    background-color: #0c3b2e;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-}
-
-.split-expense {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 15px;
-    margin: 20px 10px 20px 10px;
-}
-
-.split-expense h2 {
-    color: #0c3b2e;
-    margin-top: 0;
-    text-align: center;
-}
-
-#split-expense-expand {
-    width: 100%;
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    margin-top: -5px;
-}
-
-#balance-summary-mini {
-    background-color: white;
-    border-radius: 20px;
-    padding: 12px 15px;
-    margin-bottom: 12px;
-    color: #0c3b2e;
-}
-
-.mini-balance-row {
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
-    padding: 4px 0;
-}
-
-.mini-balance-net {
-    border-top: 1px solid #d9e2dc;
-    margin-top: 4px;
-    padding-top: 8px;
-}
-
-.mini-settled {
-    text-align: center;
-    font-weight: bold;
-    padding: 8px 0;
-}
-
-.balance-link {
-    display: block;
-    text-align: center;
-    margin-top: 8px;
-    color: #0c3b2e;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-#split-expense-form {
-    display: none;
-    color: #0c3b2e;
-}
-
-.expense-entry {
-    color: #0c3b2e;
-}
-
-#split-cost-btn {
-    background-color: #0c3b2e;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-}
-
-#expand-chore-btn {
-    width: 100%;
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    margin-top: -5px;
-}
-
-#split-chore-btn {
-    display: flex;
-    background-color: #0c3b2e;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    margin-top: 15px;
-}
-
-.complete-chore-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 20px;
-    margin-bottom: 15px;
-}
-
-.chores {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    margin-left: 5px;
-    margin-right: 5px;
-    color: #0c3b2e;
-}
-
-.chores h2 {
-    color: #0c3b2e;
-    margin-top: 0px;
-    margin-bottom: 10px;
-    text-align: center;
-    font-size: 20px;
-}
-
-.chores p {
-    color: #0c3b2e;
-    font-weight: 550;
-    text-align: center;
-}
-
-.chore-entry p {
-    text-align: left;
-}
-
-#chore-form {
-    display: none;
-}
-
-#add-chore-btn {
-    gap: 10px;
-    display: flex;
-    background-color: #0c3b2e;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    justify-content: center;
-}
-
-.history {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 20px;
-    margin-left: 5px;
-    margin-right: 5px;
-    color: #0c3b2e;
-}
-
-.history h2 {
-    color: #0c3b2e;
-    margin-top: 0px;
-    margin-bottom: 15px;
-    text-align: center;
-    font-size: 20px;
-}
-
-.history-note {
-    text-align: center;
-    font-style: italic;
-    margin-top: 0;
-    margin-bottom: 15px;
-}
-
-#clear-history-btn {
-    width: 100%;
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    margin-bottom: 15px;
-}
-
-.history-entry {
-    background-color: white;
-    border-radius: 20px;
-    padding: 12px;
-    margin-bottom: 10px;
-    color: #0c3b2e;
-}
-
-.history-entry h3 {
-    margin-top: 0px;
-    margin-bottom: 5px;
-    color: black;
-}
-
-.history-entry p {
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-
-.delete-history-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-}
-
-#attributions {
-    text-align: center;
-    margin-top: 20px;
-    padding: 20px 10px;
-}
-
-@media (max-width: 600px) {
-    .add-roommate {
-        flex-wrap: wrap;
-    }
-
-    .add-roommate input {
-        min-width: 0;
-    }
-
-    #add-roommate-btn {
-        width: 100%;
-    }
-
-    header {
-        padding: 10px 5px;
-    }
-
-    header h1 {
-        font-size: 20px;
-    }
-
-    header a {
-        font-size: 13px;
-        padding: 10px 2px;
-    }
-
-    .help {
-        border-radius: 30px;
-        padding: 15px;
-    }
-
-    .help-bubble {
-        padding: 12px;
-        border-radius: 20px;
-    }
-
-    .main-page {
-        grid-template-columns: 1fr;
-    }
-
-    .main-page .chores {
-        grid-column: 1;
-    }
-}
-
-.help {
-    background-color: #fffdd0;
-    border-radius: 50px;
-    padding: 20px;
-    margin: 20px 5px;
-    color: #0c3b2e;
-}
-
-.help h1 {
-    color: #0c3b2e;
-    text-align: center;
-    margin-top: 0px;
-    margin-bottom: 20px;
-}
-
-.help-bubble {
-    background-color: white;
-    border-radius: 25px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
-
-.help-bubble h2 {
-    color: black;
-    margin-top: 0px;
-    margin-bottom: 5px;
-}
-
-.help-bubble p {
-    color: #0c3b2e;
-    margin-top: 5px;
-    margin-bottom: 8px;
-    line-height: 1.5;
-}
-
-/* ---------- Auth page ---------- */
-
-.auth-box {
-    max-width: 400px;
-    background-color: #fffdd0;
-    border-radius: 30px;
-    padding: 25px;
-    margin: 40px auto;
-    color: #0c3b2e;
-    display: flex;
-    flex-direction: column;
-}
-
-.auth-box h2 {
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-}
-
-.auth-box label {
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 4px;
-}
-
-.auth-box input {
-    width: 100%;
-    margin-bottom: 5px;
-}
-
-#auth-name-field {
-    display: flex;
-    flex-direction: column;
-}
-
-.auth-box button {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 15px;
-    margin-top: 12px;
-    cursor: pointer;
-}
-
-#auth-error {
-    color: #ff4d4f;
-    font-weight: bold;
-}
-
-#auth-toggle-text {
-    text-align: center;
-    margin-top: 10px;
-}
-
-#auth-toggle-text a {
-    color: #0c3b2e;
-    font-weight: bold;
-}
-
-.auth-divider {
-    text-align: center;
-    margin: 10px 0;
-    font-weight: bold;
-}
-
-.oauth-btn {
-    background-color: white;
-    color: #0c3b2e;
-    border: 2px solid #0c3b2e;
-}
-
-/* ---------- Shared logout button ---------- */
-
-#logout-btn {
-    background-color: #ff4d4f;
-}
-
-#current-room-label {
-    color: #0c3b2e;
-    font-weight: bold;
-    margin: 0;
-    font-size: 14px;
-}
-
-/* ---------- Room select page ---------- */
-
-.room-select {
-    max-width: 700px;
-    background-color: #fffdd0;
-    border-radius: 30px;
-    padding: 25px;
-    margin: 30px auto;
-    color: #0c3b2e;
-}
-
-.room-select h2 {
-    text-align: center;
-    margin-top: 0;
-}
-
-.room-entry {
-    background-color: white;
-    border-radius: 20px;
-    padding: 15px;
-    margin-bottom: 12px;
-}
-
-.room-entry h3 {
-    margin-top: 0;
-    margin-bottom: 5px;
-}
-
-.room-entry button {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    margin-top: 6px;
-}
-
-.room-select-panels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.room-panel {
-    background-color: white;
-    border-radius: 20px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.room-panel h3 {
-    margin-top: 0;
-}
-
-.room-panel label {
-    font-weight: bold;
-    margin-top: 8px;
-    margin-bottom: 4px;
-}
-
-.room-panel input {
-    margin-bottom: 4px;
-}
-
-.room-panel button {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    margin-top: 12px;
-}
-
-#create-room-error,
-#join-room-error {
-    color: #ff4d4f;
-    font-weight: bold;
-}
-
-@media (max-width: 600px) {
-    .room-select-panels {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ---------- Mark as Paid ---------- */
-
-.mark-paid-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
-
-.mark-paid-form {
-    display: none;
-    background-color: white;
-    border-radius: 15px;
-    padding: 10px;
-    margin-bottom: 12px;
-}
-
-.mark-paid-form.open {
-    display: block;
-}
-
-.mark-paid-form label {
-    display: block;
-    font-weight: bold;
-    margin-top: 6px;
-    margin-bottom: 2px;
-    font-size: 13px;
-}
-
-.mark-paid-form input {
-    width: 100%;
-    margin-bottom: 4px;
-    box-sizing: border-box;
-}
-
-.submit-mark-paid-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 13px;
-    margin-top: 6px;
-    cursor: pointer;
-}
-
-.mark-paid-error {
-    color: #ff4d4f;
-    font-weight: bold;
-    font-size: 13px;
-}
-
-/* ---------- Pending payments ---------- */
-
-.pending-payments {
-    max-width: 700px;
-    background-color: #fffdd0;
-    border-radius: 30px;
-    padding: 20px;
-    margin: 20px auto;
-    color: #0c3b2e;
-}
-
-.pending-payments h2 {
-    text-align: center;
-    margin-top: 0;
-}
-
-.pending-payments h3 {
-    margin-bottom: 8px;
-}
-
-.pending-payment-entry {
-    background-color: white;
-    border-radius: 15px;
-    padding: 12px;
-    margin-bottom: 10px;
-}
-
-.pending-payment-entry p {
-    margin: 0 0 8px 0;
-}
-
-.confirm-payment-btn,
-.decline-payment-btn,
-.submit-decline-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-family: "PT Serif Caption", serif;
-    font-weight: bold;
-    font-size: 13px;
-    margin-right: 6px;
-    cursor: pointer;
-}
-
-.decline-payment-btn {
-    background-color: #ff4d4f;
-}
-
-.decline-form {
-    display: none;
-    margin-top: 10px;
-}
-
-.decline-form.open {
-    display: block;
-}
-
-.decline-form label {
-    display: block;
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-
-.decline-form input {
-    width: 100%;
-    margin-bottom: 6px;
-    box-sizing: border-box;
-}
-
-.confirmed-banner {
-    max-width: 700px;
-    background-color: #d7f5d7;
-    color: #0c3b2e;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 20px;
-    padding: 12px 15px;
-    margin: 20px auto 0 auto;
+/* Cards share a row height, except while the expense form is open (it makes
+   the right card much taller than the left one). */
+.main-page:has(#split-expense-form[style*="block"]) {
+    align-items: start;
 }
 
 .hidden {
     display: none;
 }
 
-/* ---------- Notifications ---------- */
-.notification-entry {
-    background-color: white;
-    border-radius: 20px;
-    padding: 12px;
-    margin-bottom: 10px;
-    color: #0c3b2e;
+#attributions {
+    text-align: center;
+    margin-top: 12px;
+    padding: 20px 10px 28px;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
 }
 
-.notification-entry.unread {
-    border-left: 6px solid #0c3b2e;
+/* ==========================================================================
+   HEADER, NAVIGATION, USER NAME, NOTIFICATION BELL
+   Layout: [ title + room ][ user name ][ bell ] on the first row,
+   navigation tabs on the second row.
+   ========================================================================== */
+
+header {
+    background-color: var(--sidebar);
+    color: var(--sidebar-foreground);
+    border-bottom: 1px solid var(--sidebar-border);
+    /* Side padding grows on wide screens so the header lines up with the
+       900px content column below it. */
+    padding: 14px max(20px, calc((100% - 868px) / 2)) 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+        "logo user bell"
+        "nav  nav  nav";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 12px;
 }
 
-.notification-entry h3 {
-    margin-top: 0px;
-    margin-bottom: 5px;
-    color: black;
+#logo {
+    grid-area: logo;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    min-width: 0;
 }
 
-.notification-entry p {
-    margin-top: 0px;
-    margin-bottom: 10px;
+header h1 {
+    color: var(--sidebar-foreground);
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
 }
 
-.new-tag {
-    margin-left: 8px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background-color: #0c3b2e;
-    color: white;
-    font-size: 0.7em;
-    vertical-align: middle;
+/* A small copper accent beside the app name. */
+header h1::before {
+    content: "";
+    display: inline-block;
+    width: 0.6em;
+    height: 0.6em;
+    margin-right: 0.55em;
+    border-radius: 50%;
+    background-color: var(--secondary);
+    vertical-align: 0.05em;
 }
 
-.notification-action-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 6px 12px;
-    cursor: pointer;
-    margin-bottom: 10px;
+#current-room-label {
+    color: var(--accent-foreground);
+    background-color: var(--accent);
+    font-weight: 600;
+    margin: 0;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
 }
 
-/* ---------- Notification bell (top-right corner of the header) ---------- */
+#current-room-label:empty {
+    display: none;
+}
+
+.header-user-name {
+    grid-area: user;
+    justify-self: end;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+header nav {
+    grid-area: nav;
+}
+
+header:not(:has(a.bell-link)) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "logo nav";
+}
+
+header ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+header li {
+    flex: 0 1 auto;
+}
+
+/* "Switch Room" and "Log Out" sit apart from the page tabs, on the right. */
+header li:has(#switch-room-btn),
+header li:only-child {
+    margin-left: auto;
+}
+
+header nav a {
+    display: block;
+    color: var(--sidebar-foreground);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background-color: transparent;
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    text-align: center;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+header nav a:hover {
+    background-color: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+}
+
+header nav a.active {
+    background-color: var(--sidebar-primary);
+    color: var(--sidebar-primary-foreground);
+    text-decoration: none;
+}
+
+#logout-btn {
+    color: var(--text-danger);
+}
+
+header nav a#logout-btn:hover {
+    background-color: var(--destructive);
+    color: var(--destructive-foreground);
+}
+
+/* Notification bell */
 header a.bell-link,
 header a.bell-link.active {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    grid-area: bell;
+    position: relative;
     width: 40px;
     height: 40px;
     padding: 0;
@@ -996,19 +407,22 @@ header a.bell-link.active {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background-color: #fffdd0;
-    color: #0c3b2e;
+    background-color: var(--card);
+    color: var(--sidebar-foreground);
     text-decoration: none;
-    border: 2px solid #0c3b2e;
+    border: 1px solid var(--border);
+    transition: background-color 0.15s ease;
 }
 
-header > .header-user-name {
-    position: absolute;
-    top: 24px;
-    right: 62px;
-    max-width: calc(100% - 130px);
-    overflow: hidden;
-    text-overflow: ellipsis;
+header a.bell-link:hover {
+    background-color: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+}
+
+header a.bell-link.active {
+    background-color: var(--sidebar-primary);
+    border-color: var(--sidebar-primary);
+    color: var(--sidebar-primary-foreground);
 }
 
 header a.bell-link svg {
@@ -1017,12 +431,14 @@ header a.bell-link svg {
 
 /* Lit up: there is at least one unread notification. */
 header a.bell-link.has-unread {
-    background-color: #ffe066;
-    box-shadow: 0 0 10px 3px rgba(245, 179, 1, 0.75);
+    background-color: var(--tint-copper);
+    border-color: var(--secondary);
+    color: var(--text-copper);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--secondary) 22%, transparent);
 }
 
 header a.bell-link.has-unread svg {
-    fill: #f5b301;
+    fill: var(--secondary);
     animation: bell-ring 1.8s ease-in-out infinite;
     transform-origin: 50% 10%;
 }
@@ -1034,13 +450,12 @@ header a.bell-link.has-unread svg {
     min-width: 18px;
     height: 18px;
     padding: 0 4px;
-    box-sizing: border-box;
     border-radius: 9px;
-    background-color: #c0392b;
-    color: white;
+    background-color: var(--destructive);
+    color: var(--destructive-foreground);
     font-size: 11px;
     line-height: 18px;
-    font-weight: bold;
+    font-weight: 700;
     text-align: center;
 }
 
@@ -1059,39 +474,844 @@ header a.bell-link.has-unread svg {
     }
 }
 
-.pending-note {
-    margin: 4px 0 10px 0;
-    padding: 8px 12px;
-    border-radius: 14px;
-    background-color: #fffdd0;
-    color: #0c3b2e;
-    font-size: 0.9em;
+/* ==========================================================================
+   CARDS (every page section)
+   ========================================================================== */
+
+.roommates,
+.split-expense,
+.chores,
+.history,
+.help,
+.balances,
+.all-expenses,
+.pending-payments,
+.room-select,
+.notifications,
+.auth-box {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 20px;
 }
-/* ---------- Join requests ---------- */
+
+/* Single-column pages: centered, comfortably narrow cards. */
+.balances,
+.all-expenses,
+.pending-payments,
+.room-select,
+.notifications,
+.help {
+    max-width: 700px;
+    margin: 0 auto 16px;
+}
+
+.history,
+main > .chores {
+    margin: 0 auto 16px;
+}
+
+.main-page .roommates,
+.main-page .split-expense,
+.main-page .chores {
+    margin: 0;
+}
+
+.roommates h2,
+.split-expense h2,
+.chores h2,
+.history h2,
+.balances h2,
+.all-expenses h2,
+.pending-payments h2,
+.room-select h2,
+.notifications h2,
+.auth-box h2,
+.help h1 {
+    color: var(--card-foreground);
+    margin: 0 0 14px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-align: left;
+}
+
+.roommates h3,
+.split-expense h3,
+.chores h3,
+.balances h3,
+.pending-payments h3,
+.room-select h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Inner panels that sit on a card. */
+#invite-info strong,
+#balance-summary,
+#balance-summary-mini,
+.balance-column,
+.history-entry,
+.help-bubble,
+.room-entry,
+.room-panel,
+.mark-paid-form,
+.pending-payment-entry,
+.notification-entry,
+.join-request-entry,
+.chore-entry {
+    background-color: var(--muted);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* ==========================================================================
+   FORM CONTROLS
+   ========================================================================== */
+
+label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 10px 0 4px;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+    width: 100%;
+    max-width: 100%;
+    padding: 9px 12px;
+    background-color: var(--input);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+}
+
+input::placeholder {
+    color: var(--muted-foreground);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 30%, transparent);
+}
+
+/* "Select All" has its checkbox and label side by side. */
+label[for="select-all"] {
+    display: inline-block;
+    margin: 0;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--primary);
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+/* The expense and chore forms repeat each heading as a label; keep the
+   label for screen readers but don't show the duplicate text. */
+#split-expense-form > div > h3 + label[for],
+#chore-form > div > h3 + label[for] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+#split-expense-form > div,
+#chore-form > div {
+    margin-bottom: 14px;
+}
+
+/* ---------- Buttons ---------- */
+
+#add-roommate-btn,
+#split-expense-expand,
+#split-cost-btn,
+#expand-chore-btn,
+#split-chore-btn,
+.complete-chore-btn,
+#add-chore-btn,
+.auth-box button,
+.room-entry button,
+.room-panel button,
+.mark-paid-btn,
+.submit-mark-paid-btn,
+.confirm-payment-btn,
+.submit-decline-btn,
+.notification-action-btn,
+.approve-btn {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+#add-roommate-btn:hover,
+#split-expense-expand:hover,
+#split-cost-btn:hover,
+#expand-chore-btn:hover,
+#split-chore-btn:hover,
+.complete-chore-btn:hover,
+#add-chore-btn:hover,
+.auth-box button:hover,
+.room-entry button:hover,
+.room-panel button:hover,
+.mark-paid-btn:hover,
+.submit-mark-paid-btn:hover,
+.confirm-payment-btn:hover,
+.submit-decline-btn:hover,
+.notification-action-btn:hover,
+.approve-btn:hover {
+    filter: brightness(1.08);
+}
+
+#add-roommate-btn:active,
+#split-expense-expand:active,
+#split-cost-btn:active,
+#expand-chore-btn:active,
+#split-chore-btn:active,
+.complete-chore-btn:active,
+.auth-box button:active,
+.room-entry button:active,
+.room-panel button:active,
+.mark-paid-btn:active,
+.confirm-payment-btn:active,
+.approve-btn:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: default;
+    filter: none;
+}
+
+/* Full-width expand buttons at the top of a form. */
+#split-expense-expand,
+#expand-chore-btn {
+    width: 100%;
+    display: block;
+}
+
+/* Smaller buttons used inside lists. */
+.mark-paid-btn,
+.submit-mark-paid-btn,
+.confirm-payment-btn,
+.submit-decline-btn,
+.decline-payment-btn,
+.deny-btn,
+.delete-history-btn,
+.notification-action-btn,
+.approve-btn {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+/* Destructive actions */
+.decline-payment-btn,
+.delete-history-btn,
+#clear-history-btn {
+    background-color: var(--destructive);
+    color: var(--destructive-foreground);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.decline-payment-btn:hover,
+.delete-history-btn:hover,
+#clear-history-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Secondary (outline) buttons */
+.auth-box .oauth-btn,
+.deny-btn {
+    background-color: transparent;
+    color: var(--text-danger);
+    border: 1px solid var(--destructive);
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-box .oauth-btn {
+    color: var(--card-foreground);
+    border-color: var(--border);
+}
+
+.auth-box .oauth-btn:hover {
+    background-color: var(--accent);
+    filter: none;
+}
+
+.deny-btn:hover {
+    background-color: var(--tint-danger);
+}
+
+/* ---------- Error / status text ---------- */
+
+#roommate-error,
+#auth-error,
+#create-room-error,
+#join-room-error,
+.mark-paid-error,
+#expense-error,
+#chore-error {
+    color: var(--text-danger);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 6px;
+}
+
+#join-room-error .info-message {
+    color: var(--text-primary);
+}
+
+/* ==========================================================================
+   DASHBOARD (index.html)
+   ========================================================================== */
+
+.room-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.room-head h2,
+.display-roommates h2 {
+    margin: 0;
+}
+
+#roommate-label {
+    display: none;
+}
+
+#roommate-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted-foreground);
+}
+
+#roommate-count img {
+    width: 24px;
+    height: auto;
+}
+
+/* The icon image is a dark glyph; make it light in dark mode. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) #roommate-count img {
+        filter: brightness(0) invert(1) opacity(0.6);
+    }
+}
+
+:root[data-theme="dark"] #roommate-count img {
+    filter: brightness(0) invert(1) opacity(0.6);
+}
+
+#roommate-count h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+
+#roommate-list p {
+    margin: 0;
+    padding: 8px 0;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+}
+
+#roommate-list p:last-child {
+    border-bottom: none;
+}
+
+#invite-info {
+    color: var(--muted-foreground);
+    font-weight: 500;
+    margin-top: 12px;
+    font-size: 0.9rem;
+}
+
+#invite-info strong {
+    display: inline-block;
+    padding: 3px 10px;
+    margin-left: 4px;
+    color: var(--card-foreground);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.add-roommate {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.add-roommate input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Expense summary */
+#balance-summary-mini {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}
+
+#balance-summary-mini p {
+    margin: 0;
+}
+
+.mini-balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.mini-balance-row span:last-child,
+.balance-row span:last-child {
+    font-variant-numeric: tabular-nums;
+}
+
+#balance-summary-mini .mini-balance-row:nth-of-type(1) span:last-child {
+    color: var(--text-danger);
+}
+
+#balance-summary-mini .mini-balance-row:nth-of-type(2) span:last-child {
+    color: var(--text-primary);
+}
+
+.mini-balance-net {
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+.mini-settled {
+    text-align: center;
+    font-weight: 600;
+    padding: 8px 0;
+    color: var(--text-primary);
+}
+
+.balance-link {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.balance-link:hover {
+    text-decoration: underline;
+}
+
+#split-expense-form {
+    display: none;
+    color: var(--card-foreground);
+    margin-top: 14px;
+}
+
+.expense-entry {
+    color: var(--card-foreground);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.expense-entry:last-child {
+    border-bottom: none;
+}
+
+.expense-entry h3 {
+    margin: 0 0 4px;
+}
+
+.expense-entry p {
+    margin: 2px 0;
+}
+
+#split-checkboxes label,
+#rotation-checkboxes label,
+#split-expense-form > div > label:not([for]) {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    font-weight: 500;
+}
+
+/* The checkbox lists are generated with <br> after every label. */
+#split-checkboxes br,
+#rotation-checkboxes br {
+    display: none;
+}
+
+.custom-split-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.custom-split-row input {
+    max-width: 110px;
+}
+
+#custom-split-remaining {
+    font-weight: 600;
+    text-align: right;
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+}
+
+#split-cost-btn,
+#split-chore-btn {
+    margin-top: 6px;
+}
+
+/* ==========================================================================
+   CHORES
+   ========================================================================== */
+
+.chores p {
+    color: var(--card-foreground);
+    font-weight: 500;
+    text-align: left;
+}
+
+.chore-entry {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.chore-entry h3 {
+    margin: 0 0 4px;
+}
+
+.chore-entry p {
+    text-align: left;
+    margin: 2px 0;
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+.complete-chore-btn {
+    margin-top: 10px;
+    padding: 7px 16px;
+    font-size: 0.9rem;
+}
+
+#chore-form {
+    display: none;
+    margin-top: 14px;
+}
+
+#add-chore-btn {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+#split-chore-btn {
+    display: flex;
+}
+
+.rotation-note {
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+/* ==========================================================================
+   BALANCES + PAYMENTS
+   ========================================================================== */
+
+#balance-summary {
+    padding: 14px 16px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+#balance-summary p {
+    margin: 4px 0;
+}
+
+.balance-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.balance-column {
+    padding: 14px 16px;
+}
+
+.balance-column h3 {
+    margin: 0 0 8px;
+    text-align: left;
+}
+
+#you-owe-list .balance-row span:last-child {
+    color: var(--text-danger);
+}
+
+#owed-to-you-list .balance-row span:last-child {
+    color: var(--text-primary);
+}
+
+.balance-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-weight: 600;
+}
+
+.balance-row-wrapper {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+}
+
+.balance-row-wrapper:last-child {
+    border-bottom: none;
+}
+
+.balance-row-wrapper .balance-row {
+    border-bottom: none;
+    padding-bottom: 2px;
+}
+
+.balance-note {
+    text-align: left;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    margin-top: 16px;
+    margin-bottom: 0;
+}
+
+.pending-note {
+    margin: 6px 0 10px 0;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    background-color: var(--tint-copper);
+    border: 1px solid color-mix(in srgb, var(--secondary) 40%, transparent);
+    color: var(--text-copper);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.mark-paid-btn {
+    margin: 4px 0 10px;
+}
+
+.mark-paid-form {
+    display: none;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.mark-paid-form.open {
+    display: block;
+}
+
+.mark-paid-form label {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    font-size: 0.85rem;
+}
+
+.mark-paid-form input {
+    margin-bottom: 4px;
+}
+
+.mark-paid-error {
+    font-size: 0.85rem;
+}
+
+.pending-payments h3 {
+    margin: 14px 0 8px;
+}
+
+.pending-payment-entry {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.pending-payment-entry p {
+    margin: 0 0 8px 0;
+}
+
+.confirm-payment-btn,
+.decline-payment-btn,
+.submit-decline-btn {
+    margin-right: 6px;
+}
+
+.decline-form {
+    display: none;
+    margin-top: 10px;
+}
+
+.decline-form.open {
+    display: block;
+}
+
+.decline-form label {
+    font-size: 0.85rem;
+    margin: 0 0 4px;
+}
+
+.decline-form input {
+    margin-bottom: 8px;
+}
+
+.confirmed-banner {
+    max-width: 700px;
+    background-color: var(--tint-primary);
+    border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: center;
+    border-radius: var(--radius);
+    padding: 12px 15px;
+    margin: 0 auto 16px;
+}
+
+/* ==========================================================================
+   HISTORY
+   ========================================================================== */
+
+.history-note {
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+    margin-top: 0;
+    margin-bottom: 14px;
+}
+
+#clear-history-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+}
+
+.history-entry {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.history-entry h3 {
+    margin: 0 0 4px;
+    color: var(--card-foreground);
+    font-size: 1rem;
+}
+
+.history-entry p {
+    margin: 0 0 8px;
+}
+
+.delete-history-btn {
+    padding: 6px 14px;
+}
+
+/* ==========================================================================
+   NOTIFICATIONS + JOIN REQUESTS
+   ========================================================================== */
+
+.notification-entry,
+.join-request-entry {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.notification-entry {
+    border-left-width: 4px;
+}
+
+.join-request-entry {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.notification-entry.unread {
+    border-left-color: var(--secondary);
+    background-color: var(--tint-copper);
+}
+
+.notification-entry h3 {
+    margin: 0 0 4px;
+    color: var(--card-foreground);
+    font-size: 1rem;
+}
+
+.notification-entry p {
+    margin: 0 0 8px;
+}
+
+.new-tag {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: var(--tint-copper);
+    border: 1px solid var(--secondary);
+    color: var(--text-copper);
+    font-size: 0.7rem;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.notification-action-btn {
+    margin-bottom: 4px;
+}
+
 .notification-actions {
     display: flex;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .approve-btn,
 .deny-btn {
-    border-radius: 10px;
     padding: 6px 16px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.approve-btn {
-    background-color: #0c3b2e;
-    color: white;
-    border: 2px solid #0c3b2e;
-}
-
-.deny-btn {
-    background-color: white;
-    color: #c0392b;
-    border: 2px solid #c0392b;
 }
 
 .approve-btn:disabled,
@@ -1101,13 +1321,224 @@ header a.bell-link.has-unread svg {
 }
 
 .request-status {
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.join-request-entry {
-    background-color: white;
-    border-radius: 20px;
-    padding: 4px 12px;
-    margin-bottom: 10px;
-    color: #0c3b2e;
+/* ==========================================================================
+   HELP
+   ========================================================================== */
+
+.help h1 {
+    margin-bottom: 16px;
+}
+
+.help-bubble {
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.help-bubble h2 {
+    color: var(--card-foreground);
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+}
+
+.help-bubble p {
+    color: var(--card-foreground);
+    margin: 5px 0 8px;
+    line-height: 1.55;
+}
+
+/* ==========================================================================
+   AUTH
+   ========================================================================== */
+
+.auth-box {
+    max-width: 420px;
+    padding: 28px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box h2 {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.auth-box label {
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+.auth-box input {
+    margin-bottom: 4px;
+}
+
+#auth-name-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-box button {
+    margin-top: 14px;
+    padding: 10px;
+}
+
+#auth-toggle-text {
+    text-align: center;
+    margin-top: 12px;
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+#auth-toggle-text a {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 10px 0 0;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   ROOM SELECT
+   ========================================================================== */
+
+.room-select {
+    padding: 24px;
+    margin: 28px auto;
+}
+
+.room-entry {
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.room-entry h3 {
+    margin: 0 0 4px;
+}
+
+.room-entry p {
+    margin: 2px 0;
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+.room-entry button {
+    margin-top: 8px;
+}
+
+#my-join-requests h3 {
+    margin-top: 18px;
+}
+
+.room-select-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.room-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-panel h3 {
+    margin-top: 0;
+}
+
+.room-panel label {
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.room-panel input {
+    margin-bottom: 4px;
+}
+
+.room-panel button {
+    margin-top: 12px;
+}
+
+/* ==========================================================================
+   SMALL SCREENS
+   ========================================================================== */
+
+@media (max-width: 600px) {
+    main {
+        padding: 14px 12px 4px;
+    }
+
+    header {
+        padding: 12px 12px 10px;
+        column-gap: 8px;
+    }
+
+    header h1 {
+        font-size: 1.15rem;
+    }
+
+    .header-user-name {
+        max-width: 90px;
+        font-size: 0.8rem;
+    }
+
+    header ul {
+        gap: 4px;
+    }
+
+    header nav a {
+        font-size: 0.82rem;
+        padding: 7px 10px;
+    }
+
+    .roommates,
+    .split-expense,
+    .chores,
+    .history,
+    .help,
+    .balances,
+    .all-expenses,
+    .pending-payments,
+    .room-select,
+    .notifications,
+    .auth-box {
+        padding: 16px;
+    }
+
+    .main-page {
+        grid-template-columns: 1fr;
+    }
+
+    .main-page .chores {
+        grid-column: 1;
+    }
+
+    .balance-columns,
+    .room-select-panels {
+        grid-template-columns: 1fr;
+    }
+
+    .add-roommate {
+        flex-wrap: wrap;
+    }
+
+    .add-roommate input {
+        min-width: 0;
+    }
+
+    #add-roommate-btn {
+        width: 100%;
+    }
+
+    .auth-box {
+        margin: 24px auto;
+    }
 }
