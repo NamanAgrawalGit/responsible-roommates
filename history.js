@@ -20,6 +20,16 @@ window.onload = async function () {
         payment_declined: "Payment Declined",
     };
 
+    // Escape user-provided text before inserting it into HTML.
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     function formatAction(action) {
         if (actionLabels[action]) {
             return actionLabels[action];
@@ -58,13 +68,13 @@ window.onload = async function () {
             historyList.innerHTML +=
                 "<div class='history-entry'>" +
                 "<h3>" +
-                formatAction(entry.action) +
+                escapeHtml(formatAction(entry.action)) +
                 "</h3>" +
                 "<p>" +
-                (entry.details || "") +
+                escapeHtml(entry.details || "") +
                 "</p>" +
                 "<p><em>" +
-                actorName +
+                escapeHtml(actorName) +
                 " — " +
                 when +
                 "</em></p>" +

@@ -6,10 +6,6 @@ Visual theme: "Forest Copper" (21st.dev, serafimcloud). The theme is a set of
 CSS variables (colors, radius, fonts, shadow) defined in the THEME TOKENS
 section below; every other rule in this file uses those variables instead of
 hard-coded colors, so changing the look means changing the tokens.
-
-Dark mode follows the visitor's system setting (prefers-color-scheme).
-Adding data-theme="light" or data-theme="dark" to the <html> element forces
-one or the other, which is how a future manual toggle would work.
 */
 
 /* ==========================================================================
@@ -76,114 +72,6 @@ one or the other, which is how a future manual toggle would work.
   --tint-primary: color-mix(in srgb, var(--primary) 14%, var(--card));
   --tint-copper: color-mix(in srgb, var(--secondary) 16%, var(--card));
   --tint-danger: color-mix(in srgb, var(--destructive) 14%, var(--card));
-}
-
-/* Dark: follows the system setting unless the page is forced to light. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --card: #100d08;
-    --ring: #45a167;
-    --input: #1a150e;
-    --muted: #1e1a14;
-    --accent: #222a25;
-    --border: #2f281b;
-    --radius: 0.625rem;
-    --chart-1: #45a167;
-    --chart-2: #ac6f39;
-    --chart-3: #ac3939;
-    --chart-4: #6aaf83;
-    --chart-5: #476b54;
-    --popover: #0b0905;
-    --primary: #45a167;
-    --sidebar: #211a12;
-    --spacing: 0.25rem;
-    --font-mono: "JetBrains Mono", ui-monospace, monospace;
-    --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
-    --secondary: #81542c;
-    --background: #070503;
-    --font-serif: Georgia, serif;
-    --foreground: #d6d6d6;
-    --destructive: #ac3939;
-    --shadow-blur: 20px;
-    --shadow-color: #1a1a1a;
-    --sidebar-ring: #45a167;
-    --shadow-spread: 0px;
-    --letter-spacing: 0em;
-    --shadow-opacity: 0.05;
-    --sidebar-accent: #495940;
-    --sidebar-border: #272117;
-    --card-foreground: #dee3e0;
-    --shadow-offset-x: 0px;
-    --shadow-offset-y: 8px;
-    --sidebar-primary: #45a167;
-    --muted-foreground: #928f8a;
-    --accent-foreground: #cbe6d5;
-    --popover-foreground: #cbe6d5;
-    --primary-foreground: #040302;
-    --sidebar-foreground: #f0eeeb;
-    --secondary-foreground: #d9d9d9;
-    --destructive-foreground: #fafafa;
-    --sidebar-accent-foreground: #fff;
-    --sidebar-primary-foreground: #040302;
-
-    --text-primary: var(--primary);
-    --text-danger: color-mix(in srgb, var(--destructive) 65%, #fff);
-    --text-copper: color-mix(in srgb, var(--secondary) 65%, #fff);
-    color-scheme: dark;
-  }
-}
-
-/* Dark: forced on with data-theme="dark" (same values as above). */
-:root[data-theme="dark"] {
-  --card: #100d08;
-  --ring: #45a167;
-  --input: #1a150e;
-  --muted: #1e1a14;
-  --accent: #222a25;
-  --border: #2f281b;
-  --radius: 0.625rem;
-  --chart-1: #45a167;
-  --chart-2: #ac6f39;
-  --chart-3: #ac3939;
-  --chart-4: #6aaf83;
-  --chart-5: #476b54;
-  --popover: #0b0905;
-  --primary: #45a167;
-  --sidebar: #211a12;
-  --spacing: 0.25rem;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
-  --secondary: #81542c;
-  --background: #070503;
-  --font-serif: Georgia, serif;
-  --foreground: #d6d6d6;
-  --destructive: #ac3939;
-  --shadow-blur: 20px;
-  --shadow-color: #1a1a1a;
-  --sidebar-ring: #45a167;
-  --shadow-spread: 0px;
-  --letter-spacing: 0em;
-  --shadow-opacity: 0.05;
-  --sidebar-accent: #495940;
-  --sidebar-border: #272117;
-  --card-foreground: #dee3e0;
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 8px;
-  --sidebar-primary: #45a167;
-  --muted-foreground: #928f8a;
-  --accent-foreground: #cbe6d5;
-  --popover-foreground: #cbe6d5;
-  --primary-foreground: #040302;
-  --sidebar-foreground: #f0eeeb;
-  --secondary-foreground: #d9d9d9;
-  --destructive-foreground: #fafafa;
-  --sidebar-accent-foreground: #fff;
-  --sidebar-primary-foreground: #040302;
-
-  --text-primary: var(--primary);
-  --text-danger: color-mix(in srgb, var(--destructive) 65%, #fff);
-  --text-copper: color-mix(in srgb, var(--secondary) 65%, #fff);
-  color-scheme: dark;
 }
 
 /* ==========================================================================
@@ -830,17 +718,6 @@ button:disabled {
 #roommate-count img {
     width: 24px;
     height: auto;
-}
-
-/* The icon image is a dark glyph; make it light in dark mode. */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) #roommate-count img {
-        filter: brightness(0) invert(1) opacity(0.6);
-    }
-}
-
-:root[data-theme="dark"] #roommate-count img {
-    filter: brightness(0) invert(1) opacity(0.6);
 }
 
 #roommate-count h3 {

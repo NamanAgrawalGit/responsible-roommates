@@ -131,7 +131,7 @@ user hasn't chosen a room yet. It also wires up the shared "Log Out" and
         if (roomLabel) {
             const roomName = localStorage.getItem("currentRoomName");
             if (roomName) {
-                roomLabel.innerHTML = "Room: " + roomName;
+                roomLabel.textContent = "Room: " + roomName;
             }
         }
     }

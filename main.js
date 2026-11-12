@@ -16,6 +16,16 @@ window.onload = async function () {
     let members = []; // [{ id, name, role }]
     let membersById = {};
 
+    // Escape user-provided text before inserting it into HTML.
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     const roommateList = document.getElementById("roommate-list");
     const roommateCount = document.getElementById("roommate-count");
     const inviteInfo = document.getElementById("invite-info");
@@ -93,12 +103,12 @@ window.onload = async function () {
             const prevValue = existingValues[memberId] === undefined ? "" : existingValues[memberId];
             customSplitInputs.innerHTML +=
                 "<div class='custom-split-row'><label>" +
-                name +
+                escapeHtml(name) +
                 "</label><input class='custom-amount-input' " +
                 "data-member-id='" +
-                memberId +
+                escapeHtml(memberId) +
                 "' value='" +
-                prevValue +
+                escapeHtml(prevValue) +
                 "' placeholder='$0.00'></div>";
         }
 
@@ -167,16 +177,16 @@ window.onload = async function () {
         roommateList.innerHTML = "";
         for (let i = 0; i < members.length; i++) {
             roommateList.innerHTML +=
-                "<p>" + members[i].name + (members[i].role === "owner" ? " (owner)" : "") + "</p>";
+                "<p>" + escapeHtml(members[i].name) + (members[i].role === "owner" ? " (owner)" : "") + "</p>";
         }
 
         splitCheckboxes.innerHTML = "";
         for (let i = 0; i < members.length; i++) {
             splitCheckboxes.innerHTML +=
                 '<label><input type="checkbox" class="roommate-checkbox" value="' +
-                members[i].id +
+                escapeHtml(members[i].id) +
                 '" checked> ' +
-                members[i].name +
+                escapeHtml(members[i].name) +
                 "</label><br>";
         }
         const checkboxes = document.getElementsByClassName("roommate-checkbox");
@@ -188,7 +198,7 @@ window.onload = async function () {
         for (let i = 0; i < members.length; i++) {
             const selectedAttr = members[i].id === user.id ? "selected" : "";
             paidBySelect.innerHTML +=
-                "<option value='" + members[i].id + "' " + selectedAttr + ">" + members[i].name + "</option>";
+                "<option value='" + escapeHtml(members[i].id) + "' " + selectedAttr + ">" + escapeHtml(members[i].name) + "</option>";
         }
 
         const myMembership = members.find(function (m) {
@@ -203,7 +213,7 @@ window.onload = async function () {
                 .single();
             if (roomData) {
                 inviteInfo.innerHTML =
-                    "<p>Invite code (share with roommates): <strong>" + roomData.invite_code + "</strong></p>";
+                    "<p>Invite code (share with roommates): <strong>" + escapeHtml(roomData.invite_code) + "</strong></p>";
             }
         } else {
             inviteInfo.innerHTML = "";
@@ -258,11 +268,11 @@ window.onload = async function () {
             const chore = data[i];
             choreListDiv.innerHTML +=
                 "<div class='chore-entry'><h3>" +
-                chore.name +
+                escapeHtml(chore.name) +
                 "</h3><p>Assigned to: " +
-                (membersById[chore.assigned_to] || "Unassigned") +
+                escapeHtml(membersById[chore.assigned_to] || "Unassigned") +
                 "</p><p>Due: " +
-                (chore.due_date || "No due date") +
+                escapeHtml(chore.due_date || "No due date") +
                 "</p></div>";
         }
     }
@@ -299,17 +309,17 @@ window.onload = async function () {
                 const value = getCurrencyValue(inputs[i]);
 
                 if (isNaN(value)) {
-                    expenseErrorDiv.innerHTML = "<p>Enter a valid amount for " + name + ".</p>";
+                    expenseErrorDiv.innerHTML = "<p>Enter a valid amount for " + escapeHtml(name) + ".</p>";
                     return;
                 }
                 if (value < 0) {
-                    expenseErrorDiv.innerHTML = "<p>" + name + "'s amount can't be negative.</p>";
+                    expenseErrorDiv.innerHTML = "<p>" + escapeHtml(name) + "'s amount can't be negative.</p>";
                     return;
                 }
                 if (value > amount) {
                     expenseErrorDiv.innerHTML =
                         "<p>" +
-                        name +
+                        escapeHtml(name) +
                         "'s amount ($" +
                         value.toFixed(2) +
                         ") can't be more than the total expense ($" +
@@ -350,7 +360,7 @@ window.onload = async function () {
 
         if (expenseInsertError) {
             splitCostBtn.disabled = false;
-            expenseErrorDiv.innerHTML = "<p>" + expenseInsertError.message + "</p>";
+            expenseErrorDiv.innerHTML = "<p>" + escapeHtml(expenseInsertError.message) + "</p>";
             return;
         }
 
@@ -377,7 +387,7 @@ window.onload = async function () {
         splitCostBtn.disabled = false;
 
         if (splitsError) {
-            expenseErrorDiv.innerHTML = "<p>" + splitsError.message + "</p>";
+            expenseErrorDiv.innerHTML = "<p>" + escapeHtml(splitsError.message) + "</p>";
             return;
         }
 

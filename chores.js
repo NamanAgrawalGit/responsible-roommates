@@ -22,6 +22,16 @@ window.onload = async function () {
     let membersById = {};
     let rotationOrder = [];
 
+    // Escape user-provided text before inserting it into HTML.
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     const expandChoreBtn = document.getElementById("expand-chore-btn");
     const choreForm = document.getElementById("chore-form");
     const assignSelect = document.getElementById("assign-to");
@@ -169,9 +179,9 @@ window.onload = async function () {
 
             assignSelect.innerHTML +=
                 "<option value='" +
-                data[i].user_id +
+                escapeHtml(data[i].user_id) +
                 "'>" +
-                name +
+                escapeHtml(name) +
                 "</option>";
         }
 
@@ -462,19 +472,19 @@ window.onload = async function () {
             choreListDiv.innerHTML +=
                 "<div class='chore-entry'>" +
                 "<h3>" +
-                chore.name +
+                escapeHtml(chore.name) +
                 "</h3>" +
                 "<p>Assigned to: " +
-                (membersById[chore.assigned_to] ||
+                escapeHtml(membersById[chore.assigned_to] ||
                     "Unassigned") +
                 "</p>" +
                 "<p>Due: " +
-                (chore.due_date ||
+                escapeHtml(chore.due_date ||
                     "No due date") +
                 "</p>" +
                 recurrenceText +
                 "<button class='complete-chore-btn' data-id='" +
-                chore.id +
+                escapeHtml(chore.id) +
                 "'>Complete</button>" +
                 "</div>";
         }
@@ -610,7 +620,7 @@ window.onload = async function () {
 
                 choreErrorDiv.innerHTML =
                     "<p>" +
-                    error.message +
+                    escapeHtml(error.message) +
                     "</p>";
 
                 return;
