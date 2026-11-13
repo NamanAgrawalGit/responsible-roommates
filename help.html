@@ -6,7 +6,7 @@ This page provides instructions for using the Responsible Roommates app.
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
         <link href="main.css" rel="stylesheet">
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,33 +46,36 @@ This page provides instructions for using the Responsible Roommates app.
             <section class="help">
                 <h1>Help</h1>
 
-                <div class="help-bubble">
-                    <h2>About This App</h2>
+                <!-- Each question is a <details>. The shared name="help" makes
+                     it an accordion: opening one closes the others (older
+                     browsers just allow several open at once). -->
+                <details class="help-bubble" name="help">
+                    <summary><h2>About This App</h2></summary>
                     <p>
                         Responsible Roommates is an app designed to help roommates manage and keep
                         track of shared expenses and chores, making it easier to stay organized and
                         know what needs to be done.
                     </p>
-                </div>
+                </details>
 
-                <div class="help-bubble">
-                    <h2>Managing Roommates</h2>
+                <details class="help-bubble" name="help">
+                    <summary><h2>Managing Roommates</h2></summary>
                     <p>
                         In Main, Enter a roommate's name in the text box. Click "Add Roommate" to
                         add them.
                     </p>
-                </div>
+                </details>
 
-                <div class="help-bubble">
-                    <h2>Splitting Expenses</h2>
+                <details class="help-bubble" name="help">
+                    <summary><h2>Splitting Expenses</h2></summary>
                     <p>
                         In Main, click "+ Split an Expense". Enter the expense name and it's total
                         cost. Select who should split the cost, then click "Add Expense".
                     </p>
-                </div>
+                </details>
 
-                <div class="help-bubble">
-                    <h2>Recording a Payment</h2>
+                <details class="help-bubble" name="help">
+                    <summary><h2>Recording a Payment</h2></summary>
                     <p>
                         If you paid a roommate back outside the app, go to Balances and find
                         their name under "You Owe." Click "I Paid This," enter how much you
@@ -85,38 +88,41 @@ This page provides instructions for using the Responsible Roommates app.
                         balances update. If they decline it, nothing changes — you can try
                         again with a corrected amount.
                     </p>
-                </div>
+                </details>
 
-                <div class="help-bubble">
-                    <h2>Managing Chores</h2>
+                <details class="help-bubble" name="help">
+                    <summary><h2>Managing Chores</h2></summary>
                     <p>
                         In Chores, click "+ Add Chore". Enter the chore name, due date, and the
                         roommates responsible for the chore. Click "Add Chore" to save it.
                     </p>
                     <p>When a chore is finished, click the "Complete"</p>
-                </div>
-                <div class="help-bubble">
-                    <h2>Viewing History</h2>
+                </details>
+
+                <details class="help-bubble" name="help">
+                    <summary><h2>Viewing History</h2></summary>
                     <p>
                         The History page keeps track of past actions, including added roommates,
                         expenses, and chores.
                     </p>
                     <p>You can delete individual history entries using the "Delete" button.</p>
-                </div>
-                <div class="help-bubble">
-                    <h2>Clearing All Data</h2>
+                </details>
+
+                <details class="help-bubble" name="help">
+                    <summary><h2>Clearing All Data</h2></summary>
                     <p>
                         The "Clear All History" button on the History page removes all history,
                         roommates, expenses, and chores.
                     </p>
-                </div>
-                <div class="help-bubble">
-                    <h2>Your Data</h2>
+                </details>
+
+                <details class="help-bubble" name="help">
+                    <summary><h2>Your Data</h2></summary>
                     <p>
                         Information like the names of your roommates, the chores you enter and the
                         expenses will be stored untill deletion.
                     </p>
-                </div>
+                </details>
             </section>
         </main>
         <footer id="attributions">
