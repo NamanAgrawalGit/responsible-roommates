@@ -1,0 +1,653 @@
+/*
+Responsible Roommates: redesign layer (from the Figma "Green House" export).
+
+Loaded AFTER main.css on every page. main.css still owns the design tokens
+(colors, radius, fonts) and the base rules; this file adds the app shell
+(sidebar, top bar, mobile bottom nav), the new dashboard pieces, and the
+polish for cards, forms, lists and small screens. No JavaScript hooks (ids)
+are defined here, so removing this file reverts to the plain main.css look.
+
+Breakpoints: phones < 640px, tablets 640 to 1023px, desktop >= 1024px
+(sidebar appears at 1024px, like the Figma file).
+*/
+
+:root {
+    --font-heading: Fraunces, Georgia, "Times New Roman", serif;
+    --sand: #e3d8c3;
+    --bark: #3a3128;
+    --bark-soft: #6d6257;
+    --forest: #3f5e46;
+    --forest-deep: #314a37;
+    --clay: #b7673f;
+    --clay-deep: #9d4f2e;
+    --moss-bg: #e4ebdd;
+    --cream: #f6f1e7;
+    --surface: #fffdf8;
+    --rail-w: 242px;
+    --topbar-h: 76px;
+    --bottom-nav-h: 68px;
+}
+
+[hidden] { display: none !important; }
+html { scroll-padding-top: calc(var(--topbar-h) + 12px); }
+
+body {
+    font-family: var(--font-sans);
+    background: var(--cream);
+    color: var(--bark);
+    min-width: 320px;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2 { font-family: var(--font-heading); font-weight: 600; letter-spacing: -0.025em; }
+a, button { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid rgb(183 103 63 / 35%); outline-offset: 2px; }
+
+/* ==========================================================================
+   TOP BAR (the existing <header>, restyled)
+   ========================================================================== */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: var(--topbar-h);
+    background: rgb(246 241 231 / 95%);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgb(227 216 195 / 80%);
+    padding: 10px max(20px, env(safe-area-inset-right)) 10px max(20px, env(safe-area-inset-left));
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "logo user bell";
+    column-gap: 12px;
+    row-gap: 0;
+}
+
+header h1 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    line-height: 1.05;
+    color: var(--forest-deep);
+}
+header h1::before {
+    content: "";
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    flex: 0 0 40px;
+    border-radius: 13px;
+    background: url("logo.svg") center / cover no-repeat;
+    vertical-align: baseline;
+}
+
+#logo { flex-wrap: nowrap; gap: 14px; }
+
+#current-room-label {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    color: var(--bark);
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#current-room-label::before {
+    content: "Current home";
+    display: block;
+    color: #7f7164;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.header-user-name { color: var(--bark); font-weight: 800; font-size: 0.9rem; }
+
+header a.bell-link {
+    grid-area: bell;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #5e554c;
+    position: relative;
+}
+header a.bell-link:hover { background: var(--surface); }
+header a.bell-link.active { background: var(--moss-bg); color: var(--forest-deep); }
+.bell-count {
+    position: absolute;
+    top: 3px;
+    right: 1px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--clay-deep);
+    color: #fff;
+    border: 2px solid var(--cream);
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 14px;
+    text-align: center;
+}
+
+/* Pages without the app shell (login, room select): brand plus a few links. */
+body:not(.has-shell) header { grid-template-areas: "logo nav"; grid-template-columns: minmax(0, 1fr) auto; }
+body:not(.has-shell) header nav a { padding: 10px 16px; border-radius: 12px; color: var(--bark-soft); font-weight: 700; }
+body:not(.has-shell) header nav a:hover { background: var(--surface); }
+
+/* ==========================================================================
+   APP SHELL: sidebar (desktop), bottom bar (phones/tablets), More sheet
+   shell.js builds these from the header's own links.
+   ========================================================================== */
+body.has-shell header nav { display: none; }
+
+.side-rail { display: none; }
+.bottom-nav { display: none; }
+
+.shell-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 16px;
+    background: none;
+    color: #766b5f;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.shell-link:hover { background: var(--cream); color: var(--bark); }
+.shell-link[aria-current="page"] { background: var(--moss-bg); color: var(--forest-deep); }
+.shell-link svg { flex: 0 0 auto; }
+
+@media (min-width: 1024px) {
+    body.has-shell { padding-left: var(--rail-w); }
+    body.has-shell header { padding-left: 40px; padding-right: 40px; }
+    body.has-shell header h1 { display: none; }
+
+    .side-rail {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 30;
+        width: var(--rail-w);
+        padding: 28px 20px;
+        background: var(--surface);
+        border-right: 1px solid var(--sand);
+        overflow-y: auto;
+    }
+    .side-rail .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 8px;
+        text-decoration: none;
+        color: var(--forest-deep);
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+    }
+    .side-rail .brand img { width: 40px; height: 40px; border-radius: 13px; }
+    .side-rail .add-new {
+        margin-top: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        border-radius: 16px;
+        background: var(--forest);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgb(63 94 70 / 22%);
+        transition: transform 0.15s, background 0.15s;
+    }
+    .side-rail .add-new:hover { background: #334e3a; transform: translateY(-2px); }
+    .side-rail nav { margin-top: 24px; display: grid; gap: 6px; }
+    .side-rail .rail-secondary {
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid var(--sand);
+        display: grid;
+        gap: 4px;
+    }
+}
+
+@media (max-width: 1023px) {
+    body.has-shell { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)); }
+
+    .bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 40;
+        padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+        background: var(--surface);
+        border-top: 1px solid var(--sand);
+        box-shadow: 0 -8px 24px rgb(72 55 38 / 7%);
+    }
+    .bottom-nav .shell-link {
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+        min-height: 52px;
+        padding: 4px 2px;
+        border-radius: 14px;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+    .bottom-nav .shell-link[aria-current="page"] { background: var(--moss-bg); }
+}
+
+/* "Add new" floating button on phones and tablets */
+.fab {
+    display: none;
+}
+@media (max-width: 1023px) {
+    .fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(var(--bottom-nav-h) + 16px + env(safe-area-inset-bottom));
+        z-index: 35;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--forest);
+        color: #fff;
+        box-shadow: 0 10px 24px rgb(63 94 70 / 35%);
+        text-decoration: none;
+    }
+}
+
+/* More sheet (phones/tablets) */
+.more-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgb(45 35 27 / 40%);
+    display: none;
+}
+.more-sheet-backdrop.open { display: block; }
+.more-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 61;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -20px 60px rgb(45 35 27 / 22%);
+    display: none;
+}
+.more-sheet.open { display: block; }
+.more-sheet h2 { margin: 0 0 4px; font-size: 1.3rem; }
+.more-sheet .who { margin: 0 0 12px; color: var(--bark-soft); font-size: 0.9rem; overflow-wrap: anywhere; }
+.more-sheet .shell-link { width: 100%; }
+
+/* ==========================================================================
+   PAGE FRAME + HEADINGS
+   ========================================================================== */
+main {
+    max-width: 1240px;
+    padding: 28px 20px 16px;
+}
+@media (min-width: 640px) { main { padding: 36px 32px 16px; } }
+@media (min-width: 1024px) { main { padding: 40px 40px 16px; } }
+
+.page-head { margin: 0 auto 28px; max-width: 1240px; }
+.page-head .kicker { margin: 0 0 8px; color: #7f7164; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.page-head h1 { margin: 0; font-size: 2.1rem; line-height: 1.12; letter-spacing: -0.035em; color: var(--bark); }
+.page-head p.lede { margin: 8px 0 0; color: #75695d; font-size: 0.97rem; }
+@media (min-width: 640px) { .page-head h1 { font-size: 2.6rem; } }
+
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
+.section-head h2 { margin: 0; font-size: 1.4rem; color: var(--bark); }
+.section-head a { font-size: 0.85rem; font-weight: 800; color: var(--forest); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+.section-head a:hover { text-decoration: underline; }
+.count-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; margin-left: 10px; border-radius: 999px; background: var(--clay); color: #fff; font: 800 0.72rem var(--font-sans); vertical-align: middle; }
+
+/* ==========================================================================
+   CARDS (every page section)
+   ========================================================================== */
+.roommates, .split-expense, .chores, .history, .help, .balances, .all-expenses,
+.pending-payments, .room-select, .notifications, .auth-box {
+    border-radius: 20px;
+    border-color: var(--sand);
+    background: var(--surface);
+    box-shadow: none;
+    padding: 20px;
+}
+@media (min-width: 640px) {
+    .roommates, .split-expense, .chores, .history, .help, .balances, .all-expenses,
+    .pending-payments, .room-select, .notifications, .auth-box { padding: 28px; }
+}
+.balances, .all-expenses, .pending-payments, .room-select, .notifications, .help { max-width: 860px; }
+.roommates h2, .split-expense h2, .chores h2, .history h2, .balances h2, .all-expenses h2,
+.pending-payments h2, .room-select h2, .notifications h2, .auth-box h2, .help h1 {
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+}
+
+/* inner panels */
+.balance-column, .history-entry, .help-bubble, .room-entry, .room-panel, .mark-paid-form,
+.pending-payment-entry, .notification-entry, .expense-entry, .chore-entry, .join-request-entry {
+    background: var(--cream);
+    border: 1px solid var(--sand);
+    border-radius: 16px;
+}
+
+/* ==========================================================================
+   FORMS AND BUTTONS
+   ========================================================================== */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    min-height: 46px;
+    border: 1px solid #d7cab5;
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--bark);
+    font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgb(63 94 70 / 15%); outline: none; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--forest); }
+label { font-weight: 700; }
+
+button { font-family: inherit; font-weight: 800; border-radius: 14px; min-height: 44px; cursor: pointer; }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Primary actions */
+#split-cost-btn, #split-chore-btn, #create-room-btn, #join-room-btn, #auth-submit-btn,
+.confirm-payment-btn, .submit-mark-paid-btn, .approve-btn, .mark-paid-btn, .complete-chore-btn,
+.notification-action-btn {
+    background: var(--forest);
+    color: #fff;
+    border: 1px solid var(--forest);
+    border-radius: 14px;
+    transition: background 0.15s, transform 0.15s;
+}
+#split-cost-btn:hover, #split-chore-btn:hover, #create-room-btn:hover, #join-room-btn:hover,
+#auth-submit-btn:hover, .confirm-payment-btn:hover, .submit-mark-paid-btn:hover,
+.approve-btn:hover, .mark-paid-btn:hover, .complete-chore-btn:hover, .notification-action-btn:hover {
+    background: #334e3a;
+}
+/* Quiet actions */
+.decline-payment-btn, .deny-btn, .submit-decline-btn, .oauth-btn {
+    background: var(--surface);
+    color: var(--clay-deep);
+    border: 1px solid #d7cab5;
+    border-radius: 14px;
+}
+.decline-payment-btn:hover, .deny-btn:hover, .submit-decline-btn:hover { border-color: var(--clay); background: #fcf2ec; }
+#split-expense-expand, #expand-chore-btn, #add-chore-btn, #add-roommate-btn {
+    background: var(--forest);
+    color: #fff;
+    border-radius: 14px;
+    min-height: 48px;
+    padding: 0 20px;
+}
+
+/* ==========================================================================
+   DASHBOARD
+   ========================================================================== */
+.dash { display: grid; gap: 36px; max-width: 1240px; margin: 0 auto; }
+.dash section h2 { margin: 0; }
+
+/* Needs your attention */
+.attention-list { display: grid; gap: 12px; }
+.attention-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--sand);
+    border-radius: 18px;
+}
+@media (min-width: 640px) { .attention-card { flex-direction: row; align-items: center; padding: 18px 20px; } }
+.attention-card .ico { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: #f4e4db; color: var(--clay-deep); }
+.attention-card .ico.green { background: var(--moss-bg); color: var(--forest); }
+.attention-card .body { flex: 1; min-width: 0; }
+.attention-card .label { margin: 0 0 3px; color: #8a7967; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.attention-card h3 { margin: 0; font-size: 0.97rem; font-weight: 800; }
+.attention-card .detail { margin: 2px 0 0; color: #6d6257; font-size: 0.85rem; overflow-wrap: anywhere; }
+.attention-card .go {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+    border: 1px solid #d7cab5; border-radius: 12px; color: var(--forest); font-weight: 800; font-size: 0.85rem; text-decoration: none;
+}
+.attention-card .go:hover { border-color: var(--forest); background: #f0f4ec; }
+.all-caught-up {
+    display: flex; align-items: center; gap: 16px; padding: 22px;
+    background: #f0f4ec; border: 1px solid #c9d5c3; border-radius: 20px;
+}
+.all-caught-up .ico { width: 44px; height: 44px; border-radius: 50%; background: var(--forest); color: #fff; display: grid; place-items: center; flex: 0 0 44px; }
+.all-caught-up p { margin: 0; }
+.all-caught-up strong { display: block; }
+
+/* Balance cards */
+#balance-summary-mini { background: none; border: 0; padding: 0; }
+.balance-cards { display: grid; gap: 14px; }
+@media (min-width: 640px) { .balance-cards { grid-template-columns: 1fr 1fr; } }
+.bal-card { position: relative; overflow: hidden; min-height: 150px; padding: 22px 24px; border-radius: 20px; border: 1px solid; }
+.bal-card.owe { background: #fcf2ec; border-color: #e4c6b6; }
+.bal-card.owed { background: #f0f4ec; border-color: #c9d5c3; }
+.bal-card::after { content: ""; position: absolute; top: -32px; right: -28px; width: 112px; height: 112px; border-radius: 50%; border: 18px solid; opacity: 0.4; pointer-events: none; }
+.bal-card.owe::after { border-color: #eacbba; }
+.bal-card.owed::after { border-color: #c9d8c2; }
+.bal-card .tag { position: relative; display: flex; align-items: center; gap: 8px; margin: 0 0 18px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; }
+.bal-card.owe .tag { color: var(--clay-deep); }
+.bal-card.owed .tag { color: var(--forest); }
+.bal-card .tag::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.bal-card .amount { position: relative; margin: 0; font-family: var(--font-heading); font-size: 2.2rem; font-weight: 600; line-height: 1; letter-spacing: -0.03em; color: var(--bark); }
+.bal-card .sub { position: relative; margin: 14px 0 0; color: #6d6257; font-size: 0.85rem; font-weight: 700; }
+.settled-card { display: flex; align-items: center; gap: 14px; padding: 22px; background: var(--moss-bg); border: 1px solid #c9d5c3; border-radius: 20px; font-weight: 700; }
+.balance-link { display: inline-flex; align-items: center; margin-top: 12px; font-weight: 800; color: var(--forest); text-decoration: none; }
+.balance-link:hover { text-decoration: underline; }
+
+/* Quick actions */
+.quick-actions { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .quick-actions { grid-template-columns: repeat(3, 1fr); } }
+.quick-action {
+    display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 14px 18px; width: 100%;
+    background: var(--surface); border: 1px solid var(--sand); border-radius: 18px; color: var(--bark);
+    font: inherit; font-weight: 800; font-size: 0.95rem; text-align: left; text-decoration: none; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.quick-action:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgb(72 55 38 / 7%); }
+.quick-action .ico { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: var(--moss-bg); color: var(--forest); flex: 0 0 40px; }
+
+/* Dashboard two-column area */
+.dash-grid { display: grid; gap: 28px; }
+@media (min-width: 1024px) { .dash-grid { grid-template-columns: 1.3fr 1fr; align-items: start; } }
+
+.dash .chores, .dash .roommates, .dash .activity-card { max-width: none; margin: 0; }
+.chore-entry { padding: 14px 16px; margin-bottom: 10px; }
+.chore-entry h3 { margin: 0 0 2px; font-size: 0.97rem; font-weight: 800; }
+.chore-entry p { margin: 0; color: #6d6257; font-size: 0.85rem; }
+
+/* Recent activity */
+.activity-list { display: grid; gap: 4px; }
+.activity-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ece3d5; }
+.activity-row:last-child { border-bottom: 0; }
+.activity-row .ico { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--moss-bg); color: var(--forest); }
+.activity-row .ico.clay { background: #f4e4db; color: #a55332; }
+.activity-row .ico.sand { background: #eee8d8; color: #76602f; }
+.activity-row .what { margin: 0; font-weight: 800; font-size: 0.9rem; overflow-wrap: anywhere; }
+.activity-row .meta { margin: 2px 0 0; color: #7f7164; font-size: 0.78rem; }
+
+/* Roommate chips */
+#roommate-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+#roommate-list p { margin: 0; padding: 6px 14px 6px 6px; display: inline-flex; align-items: center; gap: 8px; background: var(--cream); border: 1px solid var(--sand); border-radius: 999px; font-weight: 700; font-size: 0.85rem; border-bottom-width: 1px; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #a9bba0; color: #294332; font-size: 0.68rem; font-weight: 800; flex: 0 0 28px; }
+.avatar.a1 { background: #d7a58b; color: #5c321f; }
+.avatar.a3 { background: #e8c981; color: #624b1e; }
+#invite-info p { margin: 0; padding: 12px 14px; background: var(--moss-bg); border-radius: 14px; font-size: 0.88rem; }
+#invite-info strong { letter-spacing: 0.12em; }
+
+/* Add-expense form becomes a sheet on small screens, a dialog on larger ones */
+body.sheet-open { overflow: hidden; }
+.sheet-backdrop { position: fixed; inset: 0; z-index: 70; background: rgb(45 35 27 / 45%); display: none; }
+body.sheet-open .sheet-backdrop { display: block; }
+#split-expense-form[style*="block"] {
+    position: fixed;
+    z-index: 71;
+    inset: auto 0 0 0;
+    max-height: 92dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 22px 18px calc(24px + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -20px 60px rgb(45 35 27 / 25%);
+}
+@media (min-width: 640px) {
+    #split-expense-form[style*="block"] {
+        inset: 50% auto auto 50%;
+        width: min(560px, calc(100vw - 32px));
+        max-height: 88dvh;
+        transform: translate(-50%, -50%);
+        border-radius: 24px;
+        padding: 28px;
+    }
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sheet-head h2 { margin: 0; font-size: 1.5rem; }
+.sheet-close { width: 44px; height: 44px; padding: 0; border: 0; background: var(--cream); color: var(--bark); font-size: 1.4rem; line-height: 1; }
+/* The old in-page "+ Split an Expense" button is replaced by the quick action / Add new */
+.split-expense { background: none; border: 0; padding: 0; }
+.split-expense > #split-expense-expand,
+.split-expense > #expense-outcomes > h2 { display: none; }
+#split-expense-form { text-align: left; }
+#split-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; }
+#split-checkboxes br { display: none; }
+#split-checkboxes label {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px;
+    background: var(--cream); border: 1px solid var(--sand); border-radius: 999px; font-weight: 700; font-size: 0.88rem; cursor: pointer;
+}
+#split-checkboxes label:has(input:checked) { background: var(--moss-bg); border-color: var(--forest); color: var(--forest-deep); }
+#expense-error p, #chore-error p, #auth-error, #join-room-error, #create-room-error { color: var(--clay-deep); font-weight: 700; }
+
+/* ==========================================================================
+   MONEY PAGE (balances / payments / all expenses) AND LISTS
+   ========================================================================== */
+.page-tabs { display: flex; gap: 4px; padding: 6px; margin: 0 0 24px; overflow-x: auto; width: fit-content; max-width: 100%; background: var(--surface); border: 1px solid var(--sand); border-radius: 18px; scrollbar-width: none; }
+.page-tabs::-webkit-scrollbar { display: none; }
+.page-tabs button { flex: 0 0 auto; min-height: 44px; padding: 0 18px; border: 0; border-radius: 13px; background: none; color: #7d7064; font-size: 0.85rem; white-space: nowrap; }
+.page-tabs button:hover { background: var(--cream); }
+.page-tabs button[aria-selected="true"] { background: var(--moss-bg); color: var(--forest-deep); }
+.tab-hidden { display: none !important; }
+
+.list-search { display: block; width: 100%; margin: 0 0 14px; }
+.balance-columns { gap: 16px; }
+.balance-column { padding: 16px; }
+.balance-row { padding: 10px 0; }
+#you-owe-list .balance-row span:last-child { color: var(--clay-deep); font-weight: 800; }
+#owed-to-you-list .balance-row span:last-child { color: var(--forest); font-weight: 800; }
+.expense-entry, .history-entry, .notification-entry, .pending-payment-entry { padding: 14px 16px; margin-bottom: 10px; }
+.notification-entry.unread { background: #f8f6ee; border-color: #c9d5c3; border-left: 4px solid var(--forest); }
+.notification-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.new-tag { background: var(--clay); color: #fff; }
+
+/* Rooms and auth */
+.room-select-panels { gap: 16px; }
+.room-panel { padding: 20px; }
+.room-entry { padding: 16px; }
+.auth-box { max-width: 440px; margin: 32px auto; }
+@media (max-width: 639px) { .auth-box { margin: 16px auto; } }
+
+/* Help */
+details.help-bubble { border-radius: 16px; }
+details.help-bubble > summary h2 { font-size: 1.1rem; }
+
+/* Footer */
+#attributions { padding: 20px 20px 28px; }
+
+/* ==========================================================================
+   SMALL SCREENS
+   ========================================================================== */
+@media (max-width: 1023px) {
+    .header-user-name { display: none; }
+    #attributions { padding-bottom: 16px; }
+}
+@media (max-width: 639px) {
+    header { padding: calc(8px + env(safe-area-inset-top)) 14px 8px; min-height: 64px; }
+    header h1 { font-size: 1rem; }
+    main { padding: 20px 14px 12px; }
+    .page-head h1 { font-size: 1.9rem; }
+    .balance-columns, .room-select-panels { grid-template-columns: 1fr; }
+    .main-page { grid-template-columns: 1fr; }
+    .bal-card .amount { font-size: 2rem; }
+    #split-checkboxes label { flex: 1 1 calc(50% - 8px); }
+    .notification-actions button { flex: 1 1 100%; }
+}
+@media (max-width: 380px) {
+    .bottom-nav .shell-link { font-size: 0.64rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
+
+/* Visually hidden label for search boxes (the placeholder is not a label) */
+.list-search-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ==========================================================================
+   FIXES FROM VISUAL REVIEW (override legacy main.css rules)
+   ========================================================================== */
+/* Page headings are left-aligned (legacy h1 rule centered them) */
+main .page-head, main .page-head h1, main .page-head p { text-align: left; }
+
+/* Unread bell: a quiet clay dot and count, no ring, no ringing animation */
+header a.bell-link.has-unread {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--clay-deep);
+}
+header a.bell-link.has-unread svg { fill: none; animation: none; }
+header a.bell-link { border: 0; }
+
+/* Balance cards: beat the legacy #balance-summary-mini p rules */
+#balance-summary-mini .bal-card p { margin: 0; text-align: left; }
+#balance-summary-mini .bal-card .tag { margin-bottom: 18px; }
+#balance-summary-mini .bal-card .amount { font-size: 2.2rem; color: var(--bark); }
+#balance-summary-mini .bal-card .sub { margin-top: 16px; color: #6d6257; }
+#balance-summary-mini .settled-card { text-align: left; }
+
+@media (max-width: 639px) {
+    /* Compact brand on phones: logo mark only, so the room name has room */
+    header h1 { font-size: 0; gap: 0; }
+    header h1::before { margin: 0; }
+    #logo { gap: 12px; }
+    #current-room-label { max-width: 52vw; }
+
+    /* Attention cards: icon beside text, action underneath */
+    .attention-card { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; column-gap: 14px; row-gap: 12px; }
+    .attention-card .go { grid-column: 1 / -1; }
+}
+
+/* Page cards align with the page heading (legacy rules centered them) */
+.balances, .all-expenses, .pending-payments, .room-select, .notifications, .help, .history,
+main > .chores { margin: 0 0 20px; }
+.history { max-width: 860px; }
+main > .chores { max-width: 860px; }

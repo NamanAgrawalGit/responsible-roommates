@@ -6,19 +6,23 @@ This page displays the history of actions in the Responsible Roommates app.
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
         <link href="main.css" rel="stylesheet">
+        <link href="redesign.css" rel="stylesheet">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <meta name="theme-color" content="#F6F1E7">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap"
             rel="stylesheet"
         >
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
+        <script src="shell.js" defer></script>
         <script src="history.js" defer></script>
         <title>Responsible Roommates - History</title>
     </head>
@@ -44,11 +48,20 @@ This page displays the history of actions in the Responsible Roommates app.
             </nav>
         </header>
         <main>
+            <div class="page-head">
+                <p class="kicker">Activity</p>
+                <h1>Activity</h1>
+                <p class="lede">A permanent record of what has happened in this room.</p>
+            </div>
+
             <section class="history">
                 <h2>History</h2>
                 <p class="history-note">
                     A permanent record of this room's activity. Entries can't be deleted.
                 </p>
+
+                <label class="list-search-label" for="history-search">Search activity</label>
+                <input type="search" id="history-search" class="list-search" placeholder="Search activity" data-search="#history-list" data-search-item=".history-entry">
 
                 <div id="history-list">
                     <p>Loading history...</p>

@@ -8,19 +8,23 @@ recording and confirming payments between roommates.
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
         <link href="main.css" rel="stylesheet">
+        <link href="redesign.css" rel="stylesheet">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <meta name="theme-color" content="#F6F1E7">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap"
             rel="stylesheet"
         >
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
+        <script src="shell.js" defer></script>
         <script src="currencyInput.js" defer></script>
         <script src="balanceCalc.js" defer></script>
         <script src="balances.js" defer></script>
@@ -49,7 +53,19 @@ recording and confirming payments between roommates.
         </header>
 
         <main>
-            <section class="balances">
+            <div class="page-head">
+                <p class="kicker">Money</p>
+                <h1>Expenses</h1>
+                <p class="lede">Track what is owed, record payments, and see every shared expense.</p>
+            </div>
+
+            <div class="page-tabs" data-tabs role="tablist" aria-label="Expense views">
+                <button type="button" role="tab" data-target="balances">Balances</button>
+                <button type="button" role="tab" data-target="payments">Payments</button>
+                <button type="button" role="tab" data-target="all-expenses">All expenses</button>
+            </div>
+
+            <section class="balances" id="balances">
                 <h2>Your Balances</h2>
 
                 <div id="balance-summary">
@@ -76,7 +92,7 @@ recording and confirming payments between roommates.
                 </p>
             </section>
 
-            <section class="pending-payments">
+            <section class="pending-payments" id="payments">
                 <h2>Payments</h2>
 
                 <h3>Awaiting Your Confirmation</h3>
@@ -90,8 +106,10 @@ recording and confirming payments between roommates.
                 </div>
             </section>
 
-            <section class="all-expenses">
+            <section class="all-expenses" id="all-expenses">
                 <h2>All Expenses</h2>
+                <label class="list-search-label" for="expense-search">Search expenses</label>
+                <input type="search" id="expense-search" class="list-search" placeholder="Search by name or person" data-search="#all-expenses-list" data-search-item=".expense-entry">
                 <div id="all-expenses-list">
                     <p>Loading expenses...</p>
                 </div>

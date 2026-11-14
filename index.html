@@ -10,18 +10,22 @@ track of past actions and allows users to delete individual entries or clear all
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <link href="main.css" rel="stylesheet">
+        <link href="redesign.css" rel="stylesheet">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <meta name="theme-color" content="#F6F1E7">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap"
             rel="stylesheet"
         >
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
+        <script src="shell.js" defer></script>
         <script src="currencyInput.js" defer></script>
         <script src="balanceCalc.js" defer></script>
         <script src="main.js" defer></script>
@@ -39,7 +43,7 @@ track of past actions and allows users to delete individual entries or clear all
             </div>
             <nav>
                 <ul>
-                    <li> <a href="index.html" class="active">Main</a></li>
+                    <li><a href="index.html" class="active">Main</a></li>
                     <li><a href="balances.html">Balances</a></li>
                     <li><a href="help.html">Help</a></li>
                     <li><a href="history.html">History</a></li>
@@ -49,37 +53,98 @@ track of past actions and allows users to delete individual entries or clear all
                 </ul>
             </nav>
         </header>
-        <main class="main-page">
-            <section class="roommates">
-                <div class="display-roommates">
-                    <div class="room-head">
-                        <h2 id="myroom">My Room</h2>
-                        <div id="roommate-count">
-                            <!--Attribution: "Group Glyph Icon" by Sentya Irma,
-                             sourced from Canva, licensed under Canva Content License-->
-                            <img src="images/ppl.png" alt=" ">
-                            <h3>0 Roommates</h3>
-                        </div>
-                    </div>
-
-                    <div id="roommate-list"></div>
-                    <div id="invite-info"></div>
+        <main>
+            <div class="dash">
+                <div class="page-head">
+                    <p class="kicker" id="today-label"></p>
+                    <h1 id="greeting">Welcome back.</h1>
+                    <p class="lede" id="hero-sub">Here is what is happening at your home.</p>
                 </div>
-            </section>
 
-            <section class="split-expense">
-                <div id="expense-outcomes">
-                    <h2>Expenses Summary</h2>
+                <section aria-labelledby="attention-title">
+                    <div class="section-head">
+                        <h2 id="attention-title">Needs your attention<span class="count-pill" id="attention-count" hidden>0</span></h2>
+                    </div>
+                    <div id="attention-list" class="attention-list" aria-live="polite">
+                        <p>Loading...</p>
+                    </div>
+                </section>
+
+                <section aria-labelledby="balances-title">
+                    <div class="section-head">
+                        <h2 id="balances-title">Your balances</h2>
+                        <a href="balances.html">Full balances</a>
+                    </div>
                     <div id="balance-summary-mini">
                         <p>Loading balance...</p>
                     </div>
+                </section>
+
+                <section aria-labelledby="quick-title">
+                    <div class="section-head"><h2 id="quick-title">Quick actions</h2></div>
+                    <div class="quick-actions">
+                        <button type="button" class="quick-action" id="quick-add-expense">
+                            <span class="ico"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></span>
+                            Add expense
+                        </button>
+                        <a class="quick-action" href="balances.html#payments">
+                            <span class="ico"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h16a2 2 0 0 1 2 2V19H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h13"/><path d="M16 11h5v4h-5a2 2 0 0 1 0-4Z"/></svg></span>
+                            Record payment
+                        </a>
+                        <a class="quick-action" href="chores.html">
+                            <span class="ico"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.7 2.7L16.5 9"/></svg></span>
+                            Complete chore
+                        </a>
+                    </div>
+                </section>
+
+                <div class="dash-grid">
+                    <section class="chores" aria-labelledby="chores-title">
+                        <div class="section-head">
+                            <h2 id="chores-title">Open chores</h2>
+                            <a href="chores.html">View all</a>
+                        </div>
+                        <div id="chore-list">
+                            <p>No chores added</p>
+                        </div>
+                        <div id="add-chore-form"></div>
+                    </section>
+
+                    <div class="dash-side">
+                        <section class="activity-card roommates" aria-labelledby="activity-title" style="margin-bottom: 28px">
+                            <div class="section-head">
+                                <h2 id="activity-title">Recent activity</h2>
+                                <a href="history.html">View all</a>
+                            </div>
+                            <div id="recent-activity" class="activity-list"><p>Loading...</p></div>
+                        </section>
+
+                        <section class="roommates" aria-labelledby="myroom">
+                            <div class="room-head section-head">
+                                <h2 id="myroom">Your household</h2>
+                                <div id="roommate-count">
+                                    <h3>0 Roommates</h3>
+                                </div>
+                            </div>
+                            <div id="roommate-list"></div>
+                            <div id="invite-info"></div>
+                        </section>
+                    </div>
                 </div>
-                <button id="split-expense-expand">+ Split an Expense</button>
-                <div id="split-expense-form">
+            </div>
+
+            <div class="sheet-backdrop" id="sheet-backdrop"></div>
+            <section class="split-expense">
+                <button id="split-expense-expand" type="button" hidden>+ Split an Expense</button>
+                <div id="split-expense-form" role="dialog" aria-modal="true" aria-labelledby="expense-sheet-title">
+                    <div class="sheet-head">
+                        <h2 id="expense-sheet-title">Add expense</h2>
+                        <button type="button" class="sheet-close" id="expense-close" aria-label="Close add expense">&times;</button>
+                    </div>
                     <div>
-                        <h3>Paid By</h3>
-                        <label for="paid-by">Paid by:</label>
-                        <select id="paid-by"></select>
+                        <h3>Dollar Amount</h3>
+                        <label for="amount">Dollar amount:</label>
+                        <input type="text" id="amount" step="0.01" placeholder="$0.00" min="0.00" inputmode="decimal" autocomplete="off">
                     </div>
                     <div>
                         <h3>Expense Item</h3>
@@ -87,9 +152,9 @@ track of past actions and allows users to delete individual entries or clear all
                         <input type="text" id="item" placeholder="e.g. Groceries">
                     </div>
                     <div>
-                        <h3>Dollar Amount</h3>
-                        <label for="amount">Dollar amount:</label>
-                        <input type="text" id="amount" step="0.01" placeholder="$0.00" min="0.00" inputmode="decimal">
+                        <h3>Paid By</h3>
+                        <label for="paid-by">Paid by:</label>
+                        <select id="paid-by"></select>
                     </div>
                     <div>
                         <h3>Split Method</h3>
@@ -110,14 +175,6 @@ track of past actions and allows users to delete individual entries or clear all
                     <button id="split-cost-btn">Add Expense</button>
                     <div id="expense-error"></div>
                 </div>
-            </section>
-            <section class="chores">
-                <h2>My Chores</h2>
-                <div id="chore-list">
-                    <p>No chores added</p>
-                </div>
-                <a href="chores.html" id="add-chore-btn">Add Chore</a>
-                <div id="add-chore-form"></div>
             </section>
         </main>
         <footer id="attributions">

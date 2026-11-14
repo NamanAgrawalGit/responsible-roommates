@@ -52,10 +52,31 @@ window.onload = async function () {
     // reading style.display back, since CSS — not inline style — is what
     // hides the form initially.)
     let expenseFormOpen = false;
+    function setExpenseSheet(open) {
+        expenseFormOpen = open;
+        splitExpenseForm.style.display = open ? "block" : "none";
+        splitExpenseExpand.innerHTML = open ? " - Split an Expense" : "+ Split an Expense";
+        document.body.classList.toggle("sheet-open", open);
+        if (open) {
+            amountInput.focus();
+        }
+    }
     splitExpenseExpand.addEventListener("click", function () {
-        expenseFormOpen = !expenseFormOpen;
-        splitExpenseForm.style.display = expenseFormOpen ? "block" : "none";
-        splitExpenseExpand.innerHTML = expenseFormOpen ? " - Split an Expense" : "+ Split an Expense";
+        setExpenseSheet(!expenseFormOpen);
+    });
+    document.getElementById("quick-add-expense").addEventListener("click", function () {
+        setExpenseSheet(true);
+    });
+    document.getElementById("expense-close").addEventListener("click", function () {
+        setExpenseSheet(false);
+    });
+    document.getElementById("sheet-backdrop").addEventListener("click", function () {
+        setExpenseSheet(false);
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && expenseFormOpen) {
+            setExpenseSheet(false);
+        }
     });
 
     function getSelectedMemberIds() {
@@ -146,6 +167,45 @@ window.onload = async function () {
         renderCustomSplitInputs();
     });
 
+    function initialsOf(name) {
+        return String(name || "?")
+            .split(" ")
+            .filter(Boolean)
+            .map(function (part) {
+                return part[0];
+            })
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
+    }
+
+    function timeAgo(isoString) {
+        const seconds = Math.max(0, (Date.now() - new Date(isoString).getTime()) / 1000);
+        if (seconds < 60) return "Just now";
+        if (seconds < 3600) return Math.floor(seconds / 60) + " min ago";
+        if (seconds < 86400) return Math.floor(seconds / 3600) + " hr ago";
+        if (seconds < 172800) return "Yesterday";
+        return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+
+    function renderGreeting() {
+        const meta = user.user_metadata || {};
+        const full = meta.name || meta.full_name || "";
+        const first = full.split(" ")[0];
+        const hour = new Date().getHours();
+        const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+        document.getElementById("greeting").textContent = part + (first ? ", " + first + "." : ".");
+        document.getElementById("today-label").textContent = new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+        });
+        const roomName = localStorage.getItem("currentRoomName");
+        document.getElementById("hero-sub").textContent = roomName
+            ? "Here is what is happening at " + roomName + "."
+            : "Here is what is happening at your home.";
+    }
+
     async function loadMembers() {
         const { data, error } = await supabaseClient
             .from("room_members")
@@ -172,12 +232,18 @@ window.onload = async function () {
         }
 
         roommateCount.innerHTML =
-            '<img src="images/ppl.png" alt="">' + "<h3>" + members.length + " Roommates</h3>";
+            "<h3>" + members.length + (members.length === 1 ? " roommate" : " roommates") + "</h3>";
 
         roommateList.innerHTML = "";
         for (let i = 0; i < members.length; i++) {
             roommateList.innerHTML +=
-                "<p>" + escapeHtml(members[i].name) + (members[i].role === "owner" ? " (owner)" : "") + "</p>";
+                "<p><span class='avatar a" + (i % 3 + 1) + "' aria-hidden='true'>" +
+                escapeHtml(initialsOf(members[i].name)) +
+                "</span>" +
+                escapeHtml(members[i].name) +
+                (members[i].id === user.id ? " (you)" : "") +
+                (members[i].role === "owner" ? " (owner)" : "") +
+                "</p>";
         }
 
         splitCheckboxes.innerHTML = "";
@@ -226,28 +292,32 @@ window.onload = async function () {
         const result = await loadNetBalances(currentRoomId, user.id);
 
         if (result.error) {
-            balanceSummaryMiniDiv.innerHTML = "<p>Could not load balance.</p>";
+            balanceSummaryMiniDiv.innerHTML = "<p>Could not load balance. Try refreshing.</p>";
             return;
         }
 
         const summary = summarizeBalances(result.netCents);
-        const link = "<a href='balances.html' class='balance-link'>View full balances &rarr;</a>";
 
         if (summary.settled) {
             balanceSummaryMiniDiv.innerHTML =
-                "<div class='mini-settled'>\u2705 All settled up! Nobody owes anything.</div>" +
-                link;
+                "<div class='settled-card'><span aria-hidden='true'>\u2705</span> All settled up. Nobody owes anything.</div>";
             return;
         }
 
+        // Labels, not color alone, say which direction the money goes.
         balanceSummaryMiniDiv.innerHTML =
-            "<div class='mini-balance-row'><span>You owe</span><span>$" +
+            "<div class='balance-cards'>" +
+            "<article class='bal-card owe'><p class='tag'>You owe</p><p class='amount'>$" +
             summary.totalOwed.toFixed(2) +
-            "</span></div>" +
-            "<div class='mini-balance-row'><span>Owed to you</span><span>$" +
+            "</p><p class='sub'>" +
+            (summary.totalOwed > 0 ? "Open the balances page to record a payment" : "Nothing to pay right now") +
+            "</p></article>" +
+            "<article class='bal-card owed'><p class='tag'>Owed to you</p><p class='amount'>$" +
             summary.totalOwedToYou.toFixed(2) +
-            "</span></div>" +
-            link;
+            "</p><p class='sub'>" +
+            (summary.totalOwedToYou > 0 ? "Confirm payments as they arrive" : "Nobody owes you right now") +
+            "</p></article>" +
+            "</div>";
     }
 
     async function loadChoresPreview() {
@@ -258,23 +328,185 @@ window.onload = async function () {
             .eq("status", "open")
             .order("due_date", { ascending: true });
 
-        if (error || !data || data.length === 0) {
-            choreListDiv.innerHTML = "<p>No chores added</p>";
+        if (error) {
+            choreListDiv.innerHTML = "<p>Could not load chores. Try refreshing.</p>";
+            return;
+        }
+        if (!data || data.length === 0) {
+            choreListDiv.innerHTML = "<p>No chores yet. <a href='chores.html'>Add the first one</a>.</p>";
             return;
         }
 
+        // Your own chores first, then everyone else's; show the next five.
+        const sorted = data.slice().sort(function (x, y) {
+            return (x.assigned_to === user.id ? 0 : 1) - (y.assigned_to === user.id ? 0 : 1);
+        });
+        const shown = sorted.slice(0, 5);
+
         choreListDiv.innerHTML = "";
-        for (let i = 0; i < data.length; i++) {
-            const chore = data[i];
+        for (let i = 0; i < shown.length; i++) {
+            const chore = shown[i];
+            const who = chore.assigned_to === user.id ? "You" : membersById[chore.assigned_to] || "Unassigned";
             choreListDiv.innerHTML +=
                 "<div class='chore-entry'><h3>" +
                 escapeHtml(chore.name) +
                 "</h3><p>Assigned to: " +
-                escapeHtml(membersById[chore.assigned_to] || "Unassigned") +
+                escapeHtml(who) +
                 "</p><p>Due: " +
                 escapeHtml(chore.due_date || "No due date") +
                 "</p></div>";
         }
+        if (data.length > shown.length) {
+            choreListDiv.innerHTML +=
+                "<p><a href='chores.html'>" + (data.length - shown.length) + " more on the chores page</a></p>";
+        }
+    }
+
+    // "Needs your attention": payments waiting on you, join requests (owner),
+    // and your chores due today or overdue. Each card links to the page that
+    // already has the real action, so nothing is duplicated here.
+    async function loadAttention() {
+        const list = document.getElementById("attention-list");
+        const countPill = document.getElementById("attention-count");
+        const items = [];
+        const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+        let failed = false;
+
+        const paymentsRes = await supabaseClient
+            .from("payments")
+            .select("id, payer_id, amount")
+            .eq("room_id", currentRoomId)
+            .eq("recipient_id", user.id)
+            .eq("status", "pending");
+        if (paymentsRes.error) {
+            failed = true;
+        } else {
+            (paymentsRes.data || []).forEach(function (p) {
+                items.push({
+                    label: "Payment to confirm",
+                    title: (membersById[p.payer_id] || "A roommate") + " paid you $" + Number(p.amount).toFixed(2),
+                    detail: "Confirm once the money has arrived",
+                    action: "Review",
+                    href: "balances.html#payments",
+                    tone: "green",
+                });
+            });
+        }
+
+        const me = members.find(function (x) {
+            return x.id === user.id;
+        });
+        if (me && me.role === "owner") {
+            const reqRes = await supabaseClient
+                .from("room_join_requests")
+                .select("id", { count: "exact", head: true })
+                .eq("room_id", currentRoomId)
+                .eq("status", "pending");
+            if (!reqRes.error && reqRes.count) {
+                items.push({
+                    label: "Join request",
+                    title: reqRes.count + (reqRes.count === 1 ? " person wants" : " people want") + " to join",
+                    detail: "Approve or deny from notifications",
+                    action: "Review",
+                    href: "notifications.html",
+                    tone: "green",
+                });
+            }
+        }
+
+        const choresRes = await supabaseClient
+            .from("chores")
+            .select("id, name, due_date")
+            .eq("room_id", currentRoomId)
+            .eq("assigned_to", user.id)
+            .eq("status", "open")
+            .lte("due_date", today)
+            .order("due_date", { ascending: true });
+        if (choresRes.error) {
+            failed = true;
+        } else {
+            (choresRes.data || []).forEach(function (c) {
+                items.push({
+                    label: c.due_date < today ? "Overdue" : "Due today",
+                    title: c.name,
+                    detail: "Assigned to you",
+                    action: "Open chores",
+                    href: "chores.html",
+                    tone: "clay",
+                });
+            });
+        }
+
+        if (items.length === 0) {
+            countPill.hidden = true;
+            list.innerHTML = failed
+                ? "<p>Could not check your tasks. Try refreshing.</p>"
+                : "<div class='all-caught-up'><span class='ico' aria-hidden='true'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m5 12 4.5 4.5L19 7'/></svg></span><p><strong>You\u2019re all caught up.</strong>Nothing needs you right now.</p></div>";
+            return;
+        }
+
+        countPill.hidden = false;
+        countPill.textContent = String(items.length);
+        list.innerHTML = "";
+        items.forEach(function (item) {
+            list.innerHTML +=
+                "<article class='attention-card'><span class='ico " +
+                (item.tone === "green" ? "green" : "") +
+                "' aria-hidden='true'><svg width='21' height='21' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='m8 12 2.7 2.7L16.5 9'/></svg></span>" +
+                "<div class='body'><p class='label'>" +
+                escapeHtml(item.label) +
+                "</p><h3>" +
+                escapeHtml(item.title) +
+                "</h3><p class='detail'>" +
+                escapeHtml(item.detail) +
+                "</p></div><a class='go' href='" +
+                escapeHtml(item.href) +
+                "'>" +
+                escapeHtml(item.action) +
+                "</a></article>";
+        });
+    }
+
+    async function loadRecentActivity() {
+        const box = document.getElementById("recent-activity");
+        const { data, error } = await supabaseClient
+            .from("history")
+            .select("id, action, details, created_at, profiles(name)")
+            .eq("room_id", currentRoomId)
+            .order("created_at", { ascending: false })
+            .limit(3);
+
+        if (error) {
+            box.innerHTML = "<p>Could not load activity. Try refreshing.</p>";
+            return;
+        }
+        if (!data || data.length === 0) {
+            box.innerHTML = "<p>No activity yet. Add an expense or a chore to get started.</p>";
+            return;
+        }
+
+        const labels = {
+            expense_added: "added an expense",
+            chore_added: "added a chore",
+            chore_completed: "completed a chore",
+            roommate_joined: "joined the room",
+            payment_marked_paid: "recorded a payment",
+            payment_confirmed: "confirmed a payment",
+            payment_declined: "declined a payment",
+        };
+        box.innerHTML = "";
+        data.forEach(function (entry) {
+            const actor = entry.profiles ? entry.profiles.name : "Someone";
+            const tone = entry.action.indexOf("expense") === 0 ? "clay" : entry.action.indexOf("payment") === 0 ? "sand" : "";
+            box.innerHTML +=
+                "<div class='activity-row'><span class='ico " +
+                tone +
+                "' aria-hidden='true'><svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/></svg></span><div><p class='what'>" +
+                escapeHtml(actor + " " + (labels[entry.action] || entry.action.replace(/_/g, " "))) +
+                "</p><p class='meta'>" +
+                escapeHtml((entry.details ? entry.details + " \u00b7 " : "") + timeAgo(entry.created_at)) +
+                "</p></div></div>";
+        });
     }
 
     splitCostBtn.addEventListener("click", async function () {
@@ -396,11 +628,11 @@ window.onload = async function () {
         splitEqualRadio.checked = true;
         customSplitSection.style.display = "none";
         customSplitInputs.innerHTML = "";
-        splitExpenseForm.style.display = "none";
-        expenseFormOpen = false;
-        splitExpenseExpand.innerHTML = "+ Split an Expense";
+        setExpenseSheet(false);
 
         loadBalanceSummary();
+        loadAttention();
+        loadRecentActivity();
     });
 
     // Auto-refresh: rather than requiring a manual reload to see an
@@ -424,6 +656,7 @@ window.onload = async function () {
             { event: "*", schema: "public", table: "chores", filter: "room_id=eq." + currentRoomId },
             function () {
                 loadChoresPreview();
+                loadAttention();
             }
         )
         .on(
@@ -431,11 +664,21 @@ window.onload = async function () {
             { event: "*", schema: "public", table: "payments", filter: "room_id=eq." + currentRoomId },
             function () {
                 loadBalanceSummary();
+                loadAttention();
+                loadRecentActivity();
             }
         )
         .subscribe();
 
+    renderGreeting();
     await loadMembers();
     await loadBalanceSummary();
     await loadChoresPreview();
+    await loadAttention();
+    await loadRecentActivity();
+
+    // "Add new" from another page lands here with ?add=expense
+    if (new URLSearchParams(location.search).get("add") === "expense") {
+        setExpenseSheet(true);
+    }
 };

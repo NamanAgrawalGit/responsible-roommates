@@ -7,19 +7,23 @@ such as a roommate confirming or declining a payment they recorded.
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
         <link href="main.css" rel="stylesheet">
+        <link href="redesign.css" rel="stylesheet">
+        <link rel="icon" href="favicon.svg" type="image/svg+xml">
+        <meta name="theme-color" content="#F6F1E7">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700;800&display=swap"
             rel="stylesheet"
         >
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
         <script src="supabaseClient.js" defer></script>
         <script>var REQUIRE_ROOM = true;</script>
         <script src="authGuard.js" defer></script>
+        <script src="shell.js" defer></script>
         <script src="notifications.js" defer></script>
         <title>Responsible Roommates - Notifications</title>
     </head>
@@ -45,6 +49,12 @@ such as a roommate confirming or declining a payment they recorded.
             </nav>
         </header>
         <main>
+            <div class="page-head">
+                <p class="kicker">Inbox</p>
+                <h1>Notifications</h1>
+                <p class="lede">Payments, join requests and updates for this room.</p>
+            </div>
+
             <section class="notifications">
                 <h2>Notifications</h2>
 
